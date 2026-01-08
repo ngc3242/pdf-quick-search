@@ -16,7 +16,8 @@ class DOIService:
 
     # DOI regex pattern: 10.XXXX/SUFFIX where XXXX is 4-9 digits
     # Matches DOIs in various formats including URLs
-    DOI_PATTERN = re.compile(r"10\.\d{4,9}/[^\s]+")
+    # Stops at uppercase letters that typically start journal names
+    DOI_PATTERN = re.compile(r"10\.\d{4,9}/[^\s]+?(?=[A-Z][a-z]|$|\s)")
 
     # Maximum pages to search for DOI (performance optimization)
     MAX_PAGES_TO_SEARCH = 5
