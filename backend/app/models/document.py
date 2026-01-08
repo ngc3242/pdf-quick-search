@@ -39,6 +39,18 @@ class SearchDocument(db.Model):
 
     # Relationships
     owner = relationship("User", back_populates="documents")
+    pages = relationship(
+        "SearchPage",
+        back_populates="document",
+        cascade="all, delete-orphan",
+        order_by="SearchPage.page_number"
+    )
+    extraction_queue = relationship(
+        "ExtractionQueue",
+        back_populates="document",
+        cascade="all, delete-orphan",
+        uselist=False
+    )
 
     def to_dict(self) -> dict:
         """Convert document to dictionary.

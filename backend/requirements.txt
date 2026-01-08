@@ -18,5 +18,11 @@ python-dotenv>=1.0.0
 pytest>=8.0.0
 pytest-cov>=4.0.0
 
+# PDF Processing
+pdfplumber>=0.10.0
+
 # Utilities
 Werkzeug>=3.0.0
+
+# Testing utilities
+reportlab>=4.0.0
