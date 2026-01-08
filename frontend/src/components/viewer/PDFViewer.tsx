@@ -27,6 +27,12 @@ import 'react-pdf/dist/Page/TextLayer.css';
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
+// CMap configuration for CJK (Korean, Japanese, Chinese) text rendering
+const cMapOptions = {
+  cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+  cMapPacked: true,
+};
+
 interface PDFViewerProps {
   document: DocType;
   initialPage?: number;
@@ -489,6 +495,7 @@ export function PDFViewer({
         ) : (
           <Document
             file={fileOptions}
+            options={cMapOptions}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
             loading={

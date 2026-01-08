@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/auth';
-import { LoginPage, DocumentsPage, AdminPage } from '@/pages';
+import { LoginPage, SearchPage, DocumentsPage, AdminPage } from '@/pages';
 
 function App() {
   return (
@@ -12,6 +12,15 @@ function App() {
         {/* Protected routes */}
         <Route
           path="/"
+          element={
+            <ProtectedRoute>
+              <SearchPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/documents"
           element={
             <ProtectedRoute>
               <DocumentsPage />

@@ -43,4 +43,15 @@ def create_app(config_name: str = "default") -> Flask:
     app.register_blueprint(search_bp, url_prefix="/api/search")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
 
+    # Register CLI commands
+    from app.cli import register_cli
+
+    register_cli(app)
+
+    # Initialize extraction worker (adaptive polling)
+    if app.config.get("ENABLE_EXTRACTION_WORKER", True):
+        from app.worker import init_worker
+
+        init_worker(app)
+
     return app

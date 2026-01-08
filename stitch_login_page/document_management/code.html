@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Document Management - PDF Quick Search</title>
+<!-- Google Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#1b2631",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white font-display min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-white dark:bg-surface-dark border-b border-solid border-b-[#f0f2f4] dark:border-gray-800 w-full">
+<div class="flex items-center justify-between whitespace-nowrap px-4 lg:px-10 py-3 max-w-[1440px] mx-auto w-full">
+<div class="flex items-center gap-4 lg:gap-8">
+<div class="flex items-center gap-4 text-[#111418] dark:text-white">
+<div class="size-8 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">picture_as_pdf</span>
+</div>
+<h2 class="text-[#111418] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] hidden sm:block">PDF Quick Search</h2>
+</div>
+</div>
+<!-- Global Search -->
+<div class="hidden md:flex flex-1 max-w-[480px] px-8">
+<label class="flex flex-col w-full !h-10">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full ring-1 ring-[#dbe0e6] dark:ring-gray-700 focus-within:ring-2 focus-within:ring-primary overflow-hidden">
+<div class="text-[#617589] dark:text-gray-400 flex border-none bg-[#f9fafb] dark:bg-gray-800 items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg rounded-l-none text-[#111418] dark:text-white focus:outline-0 border-none bg-[#f9fafb] dark:bg-gray-800 h-full placeholder:text-[#617589] dark:placeholder:text-gray-500 px-3 text-sm font-normal leading-normal" placeholder="Search global documents..."/>
+</div>
+</label>
+</div>
+<div class="flex items-center justify-end gap-4 lg:gap-8">
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-[#111418] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors" href="#">Documents</a>
+<a class="text-[#111418] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors" href="#">Users</a>
+<a class="text-[#111418] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors" href="#">Settings</a>
+</nav>
+<button class="flex items-center justify-center rounded-full size-10 hover:bg-[#f0f2f4] dark:hover:bg-gray-800 transition-colors text-[#111418] dark:text-white">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-white dark:ring-gray-800 cursor-pointer" data-alt="User profile avatar showing a smiling person" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCVnP4LKu9p2WK1Duv6dYJFNaVuc0uSmUN4M-itYX8rMn13tdNxcM2kEhvyJm5iM49bsM5ZOLYerhlqXpdiqn1KiR5Ti7K1fSPX-zmTpcl9V1qhQWU4pWFLW-dRXEt7XL7GJxgN7k_1c312spLaBXcg_yFgqi1Gy1snQ_TTWyKeSZDb4xavw_G0ok17nravgVKcK7sxcCm4UwMyzWnYLbBldoHwRILdcq2LqruYPUm6onUlrwgqp-6N8h3ib6XWqAPyFbiCTZKlv7pm");'></div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-[1200px] mx-auto px-4 lg:px-10 py-8">
+<!-- Page Heading -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+<div class="flex flex-col gap-1">
+<h1 class="text-[#111418] dark:text-white text-3xl font-black leading-tight tracking-[-0.033em]">My Documents</h1>
+<p class="text-[#617589] dark:text-gray-400 text-base font-normal">Manage, upload and organize your PDF files.</p>
+</div>
+<!-- Mobile Upload Button (Visible only on very small screens if desired, here keeping layout clean) -->
+</div>
+<!-- Upload Zone -->
+<div class="mb-8">
+<div class="group relative flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-[#dbe0e6] dark:border-gray-700 bg-white dark:bg-surface-dark hover:border-primary hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-all px-6 py-10 cursor-pointer">
+<div class="size-14 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">cloud_upload</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-center">
+<p class="text-[#111418] dark:text-white text-lg font-bold">Click to upload or drag and drop</p>
+<p class="text-[#617589] dark:text-gray-400 text-sm">PDF files only (max 10MB)</p>
+</div>
+<input accept=".pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" type="file"/>
+</div>
+</div>
+<!-- Toolbar (Search & Filter) -->
+<div class="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-end sm:items-center">
+<div class="flex flex-1 w-full sm:max-w-[600px] gap-3">
+<div class="relative flex-1">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[#617589] dark:text-gray-500 text-[20px]">search</span>
+</div>
+<input class="form-input block w-full pl-10 pr-3 py-2.5 border border-[#dbe0e6] dark:border-gray-700 rounded-lg bg-white dark:bg-surface-dark text-[#111418] dark:text-white placeholder-[#617589] dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary sm:text-sm" placeholder="Search files by name..." type="text"/>
+</div>
+<div class="relative min-w-[160px]">
+<select class="form-select block w-full pl-3 pr-10 py-2.5 border border-[#dbe0e6] dark:border-gray-700 rounded-lg bg-white dark:bg-surface-dark text-[#111418] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary sm:text-sm appearance-none cursor-pointer">
+<option value="">All Statuses</option>
+<option value="completed">Completed</option>
+<option value="processing">Processing</option>
+<option value="pending">Pending</option>
+<option value="failed">Failed</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+<span class="material-symbols-outlined text-[#617589] dark:text-gray-500">expand_more</span>
+</div>
+</div>
+</div>
+<button class="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-surface-dark border border-[#dbe0e6] dark:border-gray-700 rounded-lg text-[#111418] dark:text-white font-medium text-sm hover:bg-[#f9fafb] dark:hover:bg-gray-800 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+<span>Refresh</span>
+</button>
+</div>
+<!-- Documents Table -->
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-[#dbe0e6] dark:border-gray-700 shadow-sm overflow-hidden mb-8">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#f9fafb] dark:bg-gray-800 border-b border-[#dbe0e6] dark:border-gray-700">
+<th class="px-6 py-4 text-xs font-semibold text-[#617589] dark:text-gray-400 uppercase tracking-wider w-[40%]">File Name</th>
+<th class="px-6 py-4 text-xs font-semibold text-[#617589] dark:text-gray-400 uppercase tracking-wider">Date Uploaded</th>
+<th class="px-6 py-4 text-xs font-semibold text-[#617589] dark:text-gray-400 uppercase tracking-wider">Size</th>
+<th class="px-6 py-4 text-xs font-semibold text-[#617589] dark:text-gray-400 uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 text-xs font-semibold text-[#617589] dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#dbe0e6] dark:divide-gray-700">
+<!-- Row 1: Completed -->
+<tr class="hover:bg-[#f9fafb] dark:hover:bg-gray-800/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<p class="text-sm font-medium text-[#111418] dark:text-white truncate max-w-[200px] sm:max-w-xs">invoice_2023_final_signed.pdf</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-[#617589] dark:text-gray-400">
+                                Oct 24, 2023
+                            </td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-[#617589] dark:text-gray-400 font-mono">
+                                2.4 MB
+                            </td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-900">
+<span class="size-1.5 rounded-full bg-green-500"></span>
+                                    Completed
+                                </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Rename">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Download">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors" title="Delete">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Processing -->
+<tr class="hover:bg-[#f9fafb] dark:hover:bg-gray-800/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<p class="text-sm font-medium text-[#111418] dark:text-white truncate max-w-[200px] sm:max-w-xs">contract_draft_v2.pdf</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-[#617589] dark:text-gray-400">
+                                Oct 24, 2023
+                            </td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-[#617589] dark:text-gray-400 font-mono">
+                                1.1 MB
+                            </td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary dark:bg-blue-900/30 dark:text-blue-400 border border-blue-100 dark:border-blue-900">
+<span class="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+                                    Processing
+                                </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-gray-400 cursor-not-allowed" disabled="" title="Rename">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Download">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors" title="Delete">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Pending -->
+<tr class="hover:bg-[#f9fafb] dark:hover:bg-gray-800/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<p class="text-sm font-medium text-[#111418] dark:text-white truncate max-w-[200px] sm:max-w-xs">quarterly_report_Q3.pdf</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-[#617589] dark:text-gray-400">
+                                Oct 23, 2023
+                            </td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-[#617589] dark:text-gray-400 font-mono">
+                                5.6 MB
+                            </td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+<span class="size-1.5 rounded-full bg-gray-500"></span>
+                                    Pending
+                                </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Rename">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Download">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors" title="Delete">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Failed -->
+<tr class="hover:bg-[#f9fafb] dark:hover:bg-gray-800/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 shrink-0">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex flex-col min-w-0">
+<p class="text-sm font-medium text-[#111418] dark:text-white truncate max-w-[200px] sm:max-w-xs text-opacity-60">corrupted_file_upload.pdf</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-[#617589] dark:text-gray-400">
+                                Oct 22, 2023
+                            </td>
+<td class="px-6 py-4 whitespace-nowrap text-sm text-[#617589] dark:text-gray-400 font-mono">
+                                0 KB
+                            </td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-900">
+<span class="material-symbols-outlined text-[14px]">error</span>
+                                    Failed
+                                </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-gray-400 cursor-not-allowed" disabled="" title="Rename">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-gray-400 cursor-not-allowed" disabled="" title="Download">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+<button class="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors" title="Delete">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 border-t border-[#dbe0e6] dark:border-gray-700 flex items-center justify-between">
+<p class="text-sm text-[#617589] dark:text-gray-400 hidden sm:block">
+                    Showing <span class="font-medium text-[#111418] dark:text-white">1</span> to <span class="font-medium text-[#111418] dark:text-white">4</span> of <span class="font-medium text-[#111418] dark:text-white">12</span> results
+                </p>
+<div class="flex items-center gap-2 mx-auto sm:mx-0">
+<button class="px-3 py-1 rounded-md border border-[#dbe0e6] dark:border-gray-700 text-sm font-medium text-[#617589] dark:text-gray-400 hover:bg-[#f9fafb] dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" disabled="">
+                        Previous
+                    </button>
+<button class="size-8 rounded-md bg-primary text-white text-sm font-medium flex items-center justify-center">1</button>
+<button class="size-8 rounded-md border border-[#dbe0e6] dark:border-gray-700 text-[#111418] dark:text-white text-sm font-medium flex items-center justify-center hover:bg-[#f9fafb] dark:hover:bg-gray-800 transition-colors">2</button>
+<button class="size-8 rounded-md border border-[#dbe0e6] dark:border-gray-700 text-[#111418] dark:text-white text-sm font-medium flex items-center justify-center hover:bg-[#f9fafb] dark:hover:bg-gray-800 transition-colors">3</button>
+<span class="text-[#617589] dark:text-gray-400 px-1">...</span>
+<button class="px-3 py-1 rounded-md border border-[#dbe0e6] dark:border-gray-700 text-sm font-medium text-[#111418] dark:text-white hover:bg-[#f9fafb] dark:hover:bg-gray-800">
+                        Next
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

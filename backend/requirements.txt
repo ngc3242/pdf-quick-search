@@ -21,6 +21,9 @@ pytest-cov>=4.0.0
 # PDF Processing
 pdfplumber>=0.10.0
 
+# Background Task Processing
+APScheduler>=3.10.0
+
 # Utilities
 Werkzeug>=3.0.0
 

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Search Results - PDF Quick Search</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .highlight {
+            background-color: #fef3c7; /* yellow-100 */
+            color: #111827;
+            font-weight: 600;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-x-hidden min-h-screen flex flex-col group/design-root">
+<!-- Header -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 bg-white dark:bg-background-dark dark:border-slate-800 px-6 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-4 text-slate-900 dark:text-white">
+<div class="size-8 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">picture_as_pdf</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight">PDF Quick Search</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="hidden md:flex items-center gap-9">
+<a class="text-slate-700 dark:text-slate-300 hover:text-primary text-sm font-medium leading-normal transition-colors" href="#">Upload</a>
+<a class="text-slate-700 dark:text-slate-300 hover:text-primary text-sm font-medium leading-normal transition-colors" href="#">My Documents</a>
+<a class="text-slate-700 dark:text-slate-300 hover:text-primary text-sm font-medium leading-normal transition-colors" href="#">Admin Panel</a>
+</nav>
+<div class="flex items-center gap-4">
+<div class="hidden sm:block">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all text-sm font-bold leading-normal">
+<span class="truncate">Logout</span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200" data-alt="User profile picture placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD-6Rq_DAZ9Mjrlbwux4zHK29Oq7zxfM6aliINBAETED1a_yavoTaCuKqes_vUgKyRJMOhiQ3r5Ne_th3_8LpHDbMyTqKscAVQXq2rsES5heoHNFCaV-yuHV6OpqusKghf9O45judZfRf_o5WeY5dYbuQ1jxtrmktE7-81zZaJPaVkheGNCIGS52uN3rB69mkqhAM5YichnPIcS4tDC87R4zok52fDAITHoNQt5vPCPzZyurwSrTV0lOlOqLsiFwY7h0FFf4ugiz2Xk");'></div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 flex justify-center w-full py-8 px-4 sm:px-8">
+<div class="flex flex-col max-w-[960px] w-full gap-6">
+<!-- Search Bar Section -->
+<div class="w-full">
+<div class="relative flex w-full items-center rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden h-14 focus-within:ring-2 focus-within:ring-primary/50 transition-shadow">
+<div class="flex items-center justify-center pl-4 text-slate-400">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="w-full h-full bg-transparent border-none text-slate-900 dark:text-white placeholder:text-slate-400 px-4 text-base focus:ring-0 focus:outline-none" placeholder="Search across your documents..." value="annual financial report"/>
+<div class="pr-2">
+<button class="flex items-center justify-center rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="pr-2 border-l border-slate-100 dark:border-slate-700 pl-2 h-8 flex items-center my-auto">
+<button class="h-9 px-6 bg-primary hover:bg-blue-600 text-white rounded-lg text-sm font-bold transition-colors">
+                            Search
+                        </button>
+</div>
+</div>
+</div>
+<!-- Filters & Meta -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
+<div class="flex gap-2 flex-wrap">
+<button class="flex h-8 items-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 hover:border-primary/50 hover:text-primary transition-colors group shadow-sm">
+<span class="text-slate-700 dark:text-slate-300 group-hover:text-primary text-sm font-medium">Relevance</span>
+<span class="material-symbols-outlined text-slate-400 text-sm group-hover:text-primary">arrow_drop_down</span>
+</button>
+<button class="flex h-8 items-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 hover:border-primary/50 hover:text-primary transition-colors group shadow-sm">
+<span class="text-slate-700 dark:text-slate-300 group-hover:text-primary text-sm font-medium">Date Modified</span>
+<span class="material-symbols-outlined text-slate-400 text-sm group-hover:text-primary">arrow_drop_down</span>
+</button>
+<button class="flex h-8 items-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 hover:border-primary/50 hover:text-primary transition-colors group shadow-sm">
+<span class="text-slate-700 dark:text-slate-300 group-hover:text-primary text-sm font-medium">File Type</span>
+<span class="material-symbols-outlined text-slate-400 text-sm group-hover:text-primary">arrow_drop_down</span>
+</button>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Found 12 results in 0.45 seconds</p>
+</div>
+<!-- Results List -->
+<div class="flex flex-col gap-4">
+<!-- Result 1 -->
+<article class="flex flex-col bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all">
+<div class="flex items-start justify-between gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-red-500 text-[24px]">picture_as_pdf</span>
+<a class="text-lg font-bold text-primary hover:underline decoration-2 underline-offset-2" href="#">Q1_Financial_Report.pdf</a>
+<span class="text-xs text-slate-400 font-medium">• 2.4 MB • 2 days ago</span>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-7 mb-4">
+                                ...executive summary outlining the <span class="highlight">annual financial report</span> performance. The revenue increased by 15% compared to the previous fiscal year, driven largely by the new product line launch in the Asian market...
+                            </p>
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                    Page 4
+                                </span>
+<button class="text-primary text-sm font-semibold hover:text-blue-700 flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-blue-50">
+                                    View in context <span class="material-symbols-outlined text-base">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+</article>
+<!-- Result 2 (Expanded) -->
+<article class="flex flex-col bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all">
+<div class="flex items-start justify-between gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-red-500 text-[24px]">picture_as_pdf</span>
+<a class="text-lg font-bold text-primary hover:underline decoration-2 underline-offset-2" href="#">Global_Marketing_Strategy_2024.pdf</a>
+<span class="text-xs text-slate-400 font-medium">• 8.1 MB • 1 week ago</span>
+</div>
+<!-- Snippet 1 -->
+<div class="mb-4">
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-7 mb-2">
+                                    ...allocation of budget for the <span class="highlight">annual financial report</span> review meeting scheduled for Q3. Ensure all stakeholders have copies of the...
+                                </p>
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Page 12</span>
+<button class="text-primary text-sm font-semibold hover:text-blue-700 flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-blue-50">
+                                        View in context <span class="material-symbols-outlined text-base">open_in_new</span>
+</button>
+</div>
+</div>
+<!-- Additional Matches Toggle Area -->
+<div class="pl-4 border-l-2 border-slate-100 dark:border-slate-700 mt-4 pt-2">
+<p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-3">Other matches in this file</p>
+<!-- Sub Result 1 -->
+<div class="mb-4 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-7 mb-2">
+                                        ...section 4.2 specifically addresses the <span class="highlight">annual financial report</span> discrepancies noted in the internal audit...
+                                    </p>
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-white border border-slate-200 dark:bg-slate-700 dark:border-slate-600 text-slate-600 dark:text-slate-300">Page 45</span>
+<button class="text-slate-500 hover:text-primary text-xs font-bold flex items-center gap-1 uppercase tracking-wide">
+                                            View match
+                                        </button>
+</div>
+</div>
+<button class="mt-2 text-sm text-slate-500 hover:text-primary font-medium flex items-center gap-1 transition-colors group">
+<span class="material-symbols-outlined text-xl group-hover:translate-y-0.5 transition-transform">expand_more</span>
+                                    더 많은 결과가 있습니다 (2)
+                                </button>
+</div>
+</div>
+</div>
+</article>
+<!-- Result 3 -->
+<article class="flex flex-col bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all">
+<div class="flex items-start justify-between gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-red-500 text-[24px]">picture_as_pdf</span>
+<a class="text-lg font-bold text-primary hover:underline decoration-2 underline-offset-2" href="#">Meeting_Minutes_Oct_23.pdf</a>
+<span class="text-xs text-slate-400 font-medium">• 145 KB • 3 months ago</span>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-7 mb-4">
+                                ...John presented the draft of the <span class="highlight">annual financial report</span>. The board suggested minor revisions to the executive summary...
+                            </p>
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                    Page 2
+                                </span>
+<button class="text-primary text-sm font-semibold hover:text-blue-700 flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-blue-50">
+                                    View in context <span class="material-symbols-outlined text-base">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+</article>
+<!-- Result 4 -->
+<article class="flex flex-col bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all">
+<div class="flex items-start justify-between gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-red-500 text-[24px]">picture_as_pdf</span>
+<a class="text-lg font-bold text-primary hover:underline decoration-2 underline-offset-2" href="#">Compliance_Guidelines_v2.pdf</a>
+<span class="text-xs text-slate-400 font-medium">• 1.2 MB • 5 months ago</span>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-7 mb-4">
+                                ...mandatory submission of the <span class="highlight">annual financial report</span> to the regulatory body is due by the end of the fiscal year...
+                            </p>
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                    Page 88
+                                </span>
+<button class="text-primary text-sm font-semibold hover:text-blue-700 flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-blue-50">
+                                    View in context <span class="material-symbols-outlined text-base">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+</article>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-center gap-2 mt-4 pb-8">
+<button class="flex items-center justify-center size-9 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="flex items-center justify-center size-9 rounded-lg bg-primary text-white font-medium shadow-sm">1</button>
+<button class="flex items-center justify-center size-9 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium transition-colors">2</button>
+<button class="flex items-center justify-center size-9 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium transition-colors">3</button>
+<span class="text-slate-400 flex items-center justify-center size-9">...</span>
+<button class="flex items-center justify-center size-9 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium transition-colors">8</button>
+<button class="flex items-center justify-center size-9 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+</body></html>

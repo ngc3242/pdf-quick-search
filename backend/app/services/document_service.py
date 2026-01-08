@@ -5,7 +5,7 @@ from werkzeug.datastructures import FileStorage
 
 from app.models import db
 from app.models.document import SearchDocument
-from app.utils.storage import allowed_file, save_file, delete_file, get_file_path
+from app.utils.storage import allowed_file, save_file, delete_file
 
 
 class DocumentService:
@@ -13,8 +13,7 @@ class DocumentService:
 
     @staticmethod
     def upload_document(
-        file: FileStorage,
-        owner_id: str
+        file: FileStorage, owner_id: str
     ) -> Tuple[Optional[SearchDocument], Optional[str]]:
         """Upload and save a document.
 
@@ -44,19 +43,27 @@ class DocumentService:
             original_filename=file.filename,
             file_path=file_path,
             file_size_bytes=file_size,
-            mime_type="application/pdf"
+            mime_type="application/pdf",
         )
 
         db.session.add(document)
         db.session.commit()
 
+        # Add to extraction queue for background processing
+        from app.services.extraction_service import ExtractionService
+
+        ExtractionService.add_to_queue(document.id)
+
+        # Wake up the extraction worker (if it's paused)
+        from app.worker import extraction_worker
+
+        extraction_worker.wake_up()
+
         return document, None
 
     @staticmethod
     def get_documents_by_owner(
-        owner_id: str,
-        page: int = 1,
-        per_page: int = 20
+        owner_id: str, page: int = 1, per_page: int = 20
     ) -> Tuple[List[SearchDocument], int]:
         """Get documents for a specific owner with pagination.
 
@@ -69,8 +76,7 @@ class DocumentService:
             Tuple of (documents list, total count)
         """
         query = SearchDocument.query.filter_by(
-            owner_id=owner_id,
-            is_active=True
+            owner_id=owner_id, is_active=True
         ).order_by(SearchDocument.uploaded_at.desc())
 
         total = query.count()
@@ -88,16 +94,10 @@ class DocumentService:
         Returns:
             SearchDocument or None
         """
-        return SearchDocument.query.filter_by(
-            id=document_id,
-            is_active=True
-        ).first()
+        return SearchDocument.query.filter_by(id=document_id, is_active=True).first()
 
     @staticmethod
-    def delete_document(
-        document_id: int,
-        owner_id: str
-    ) -> Tuple[bool, Optional[str]]:
+    def delete_document(document_id: int, owner_id: str) -> Tuple[bool, Optional[str]]:
         """Delete a document.
 
         Args:
@@ -126,8 +126,7 @@ class DocumentService:
 
     @staticmethod
     def verify_document_access(
-        document_id: int,
-        owner_id: str
+        document_id: int, owner_id: str
     ) -> Tuple[Optional[SearchDocument], Optional[str]]:
         """Verify user has access to document.
 
