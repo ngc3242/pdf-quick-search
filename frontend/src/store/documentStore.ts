@@ -50,6 +50,15 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await documentApi.list(page, get().perPage);
+      // Debug: Log API response to check CrossRef metadata
+      console.log('[DocumentStore] API Response:', response);
+      console.log('[DocumentStore] First document metadata:', response.documents[0] ? {
+        doi: response.documents[0].doi,
+        publication_year: response.documents[0].publication_year,
+        first_author: response.documents[0].first_author,
+        journal_name: response.documents[0].journal_name,
+        metadata_status: response.documents[0].metadata_status,
+      } : 'No documents');
       set({
         documents: response.documents,
         total: response.total,

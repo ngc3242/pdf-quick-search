@@ -4,13 +4,18 @@ PDF document management and search service with user isolation.
 
 ## Features
 
-- 🔐 User authentication with JWT tokens
-- 📄 PDF document upload and management
-- 👤 User-based document isolation
-- 🔍 Full-text search with PDF text extraction
-- 💾 Document download with Range support
-- 🎨 Modern React UI with SARA-style design
-- 👨‍💼 Admin user management
+- User authentication with JWT tokens
+- PDF document upload and management
+- User-based document isolation
+- Full-text search with PDF text extraction
+- Document download with Range support
+- Modern React UI with SARA-style design
+- Admin user management
+- CrossRef DOI metadata integration (SPEC-CROSSREF-001)
+  - Automatic DOI extraction from PDF documents
+  - CrossRef API integration with caching (7-day TTL)
+  - Author display with "et al." abbreviation for 3+ authors
+  - Clickable DOI links to original papers
 
 ## System Architecture
 
@@ -35,7 +40,8 @@ PDF document management and search service with user isolation.
 - PostgreSQL
 - Flask-SQLAlchemy
 - PyJWT for authentication
-- PyPDF2 for PDF text extraction
+- pdfplumber for PDF text extraction
+- requests for CrossRef API integration
 
 **Frontend:**
 - React 19.2
