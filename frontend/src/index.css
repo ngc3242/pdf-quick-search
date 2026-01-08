@@ -1,15 +1,73 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Tailwind CSS v4 Theme Configuration */
+@theme {
+  /* Custom colors */
+  --color-primary: #137fec;
+  --color-background-light: #f6f7f8;
+  --color-background-dark: #101922;
+  --color-surface-dark: #1b2631;
+  --color-text-primary: #111418;
+  --color-text-secondary: #617589;
+
+  /* Font family */
+  --font-display: "Inter", system-ui, sans-serif;
+}
 
 @layer base {
   :root {
-    font-family: 'Pretendard', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     line-height: 1.5;
   }
 
   body {
     margin: 0;
     min-height: 100vh;
+    background-color: var(--color-background-light);
+    color: var(--color-text-primary);
+  }
+
+  /* Material Symbols configuration */
+  .material-symbols-outlined {
+    font-variation-settings:
+      "FILL" 0,
+      "wght" 400,
+      "GRAD" 0,
+      "opsz" 24;
+  }
+}
+
+@layer components {
+  /* Search highlight */
+  .highlight {
+    background-color: #fef3c7;
+    color: #111827;
+    font-weight: 600;
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+
+  /* PDF search highlight - yellow background for matches */
+  .pdf-search-highlight {
+    background-color: rgba(254, 240, 138, 0.5);
+    color: transparent;
+    padding: 0;
+    border-radius: 2px;
+    mix-blend-mode: multiply;
+  }
+
+  /* PDF search highlight - orange for active/current match */
+  .pdf-search-highlight-active {
+    background-color: rgba(251, 146, 60, 0.5);
+    mix-blend-mode: multiply;
+  }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
