@@ -33,9 +33,13 @@ export function DocumentsPage() {
   const [viewerPage, setViewerPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isTableDragOver, setIsTableDragOver] = useState(false);
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [duplicateFiles, setDuplicateFiles] = useState<File[]>([]);
+  const [pendingNonDuplicates, setPendingNonDuplicates] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const tableFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchDocuments();
@@ -46,10 +50,73 @@ export function DocumentsPage() {
     navigate('/login');
   };
 
-  const handleFileSelect = (files: FileList | null) => {
+  // Check for duplicate filenames against existing documents
+  const checkDuplicates = (files: File[]): { duplicates: File[]; nonDuplicates: File[] } => {
+    const existingNames = new Set(documents.map(doc => doc.original_filename.toLowerCase()));
+    const duplicates: File[] = [];
+    const nonDuplicates: File[] = [];
+
+    files.forEach(file => {
+      if (existingNames.has(file.name.toLowerCase())) {
+        duplicates.push(file);
+      } else {
+        nonDuplicates.push(file);
+      }
+    });
+
+    return { duplicates, nonDuplicates };
+  };
+
+  const handleFileSelect = (files: FileList | null, fromTable = false) => {
     if (!files) return;
     const pdfFiles = Array.from(files).filter(f => f.type === 'application/pdf');
-    setUploadFiles(prev => [...prev, ...pdfFiles]);
+
+    if (fromTable) {
+      // Direct table upload - check for duplicates
+      const { duplicates, nonDuplicates } = checkDuplicates(pdfFiles);
+
+      if (duplicates.length > 0) {
+        setDuplicateFiles(duplicates);
+        setPendingNonDuplicates(nonDuplicates);
+      } else {
+        // No duplicates - upload directly
+        handleDirectUpload(nonDuplicates);
+      }
+    } else {
+      // Upload dialog - just add to queue
+      setUploadFiles(prev => [...prev, ...pdfFiles]);
+    }
+  };
+
+  const handleDirectUpload = async (files: File[]) => {
+    if (files.length === 0) return;
+    setIsUploading(true);
+    try {
+      for (const file of files) {
+        await uploadDocument(file);
+      }
+      fetchDocuments();
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleOverwriteConfirm = async () => {
+    // Upload both duplicates (overwrite) and non-duplicates
+    const allFiles = [...duplicateFiles, ...pendingNonDuplicates];
+    setDuplicateFiles([]);
+    setPendingNonDuplicates([]);
+    await handleDirectUpload(allFiles);
+  };
+
+  const handleOverwriteCancel = async () => {
+    // Only upload non-duplicates, skip duplicates
+    const nonDuplicates = pendingNonDuplicates;
+    setDuplicateFiles([]);
+    setPendingNonDuplicates([]);
+    if (nonDuplicates.length > 0) {
+      await handleDirectUpload(nonDuplicates);
+    }
   };
 
   const handleUpload = async () => {
@@ -108,6 +175,35 @@ export function DocumentsPage() {
     if (files.length > 0) {
       const pdfFiles = Array.from(files).filter(f => f.type === 'application/pdf');
       setUploadFiles(prev => [...prev, ...pdfFiles]);
+    }
+  };
+
+  // Table drag-drop handlers
+  const handleTableDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsTableDragOver(true);
+  };
+
+  const handleTableDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set false if leaving the table container
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setIsTableDragOver(false);
+    }
+  };
+
+  const handleTableDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsTableDragOver(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelect(files, true);
     }
   };
 
@@ -257,8 +353,41 @@ export function DocumentsPage() {
           </button>
         </div>
 
-        {/* Documents Table */}
-        <div className="bg-white rounded-xl border border-[#dbe0e6] shadow-sm overflow-hidden mb-8">
+        {/* Documents Table with Drag-Drop */}
+        <div
+          className={`relative bg-white rounded-xl border-2 shadow-sm overflow-hidden mb-8 transition-all ${
+            isTableDragOver
+              ? 'border-primary border-dashed bg-blue-50/30'
+              : 'border-[#dbe0e6]'
+          }`}
+          onDragOver={handleTableDragOver}
+          onDragLeave={handleTableDragLeave}
+          onDrop={handleTableDrop}
+        >
+          {/* Drag Overlay */}
+          {isTableDragOver && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-blue-50/80 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-3 text-primary">
+                <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-4xl">cloud_upload</span>
+                </div>
+                <p className="text-lg font-medium">파일을 여기에 놓으세요</p>
+                <p className="text-sm text-primary/70">PDF 파일만 업로드 가능</p>
+              </div>
+            </div>
+          )}
+
+          {/* Hidden file input for table area */}
+          <input
+            ref={tableFileInputRef}
+            accept=".pdf"
+            className="hidden"
+            type="file"
+            multiple
+            onChange={(e) => handleFileSelect(e.target.files, true)}
+            disabled={isUploading}
+          />
+
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -551,6 +680,78 @@ export function DocumentsPage() {
               disabled={isDeleting}
             >
               {isDeleting ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Duplicate File Confirmation Dialog */}
+      <Modal
+        isOpen={duplicateFiles.length > 0}
+        onClose={() => {
+          setDuplicateFiles([]);
+          setPendingNonDuplicates([]);
+        }}
+        title="중복 파일 발견"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <span className="material-symbols-outlined text-yellow-600 flex-shrink-0">warning</span>
+            <div>
+              <p className="text-sm text-yellow-800">
+                다음 파일이 이미 존재합니다. 덮어쓰시겠습니까?
+              </p>
+            </div>
+          </div>
+
+          <div className="max-h-48 overflow-y-auto">
+            <p className="text-sm font-medium text-text-primary mb-2">
+              중복 파일 ({duplicateFiles.length}개)
+            </p>
+            <div className="space-y-2">
+              {duplicateFiles.map((file, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <span className="material-symbols-outlined text-red-500 flex-shrink-0">picture_as_pdf</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-text-primary truncate">{file.name}</p>
+                    <p className="text-xs text-text-secondary">{formatFileSize(file.size)}</p>
+                  </div>
+                  <span className="material-symbols-outlined text-yellow-500 flex-shrink-0" title="중복">
+                    file_copy
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {pendingNonDuplicates.length > 0 && (
+            <p className="text-xs text-text-secondary">
+              * {pendingNonDuplicates.length}개의 새 파일은 중복 여부와 관계없이 업로드됩니다.
+            </p>
+          )}
+
+          <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+            <button
+              onClick={handleOverwriteCancel}
+              className="px-4 py-2 rounded-lg border border-[#dbe0e6] text-text-primary font-medium text-sm hover:bg-[#f9fafb] transition-colors"
+              disabled={isUploading}
+            >
+              취소 (중복 파일 건너뛰기)
+            </button>
+            <button
+              onClick={handleOverwriteConfirm}
+              className="px-4 py-2 rounded-lg bg-primary text-white font-medium text-sm hover:bg-blue-600 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  업로드 중...
+                </>
+              ) : (
+                '덮어쓰기'
+              )}
             </button>
           </div>
         </div>
