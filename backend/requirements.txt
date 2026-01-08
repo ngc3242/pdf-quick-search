@@ -27,5 +27,8 @@ APScheduler>=3.10.0
 # Utilities
 Werkzeug>=3.0.0
 
+# HTTP Client
+requests>=2.31.0
+
 # Testing utilities
 reportlab>=4.0.0

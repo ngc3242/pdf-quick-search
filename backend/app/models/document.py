@@ -16,9 +16,7 @@ class SearchDocument(db.Model):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     owner_id: Mapped[str] = mapped_column(
-        String(36),
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
     original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -37,19 +35,32 @@ class SearchDocument(db.Model):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
+    # CrossRef metadata fields (SPEC-CROSSREF-001)
+    doi: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    doi_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    publication_year: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    first_author: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    co_authors: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    journal_name: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    publisher: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    metadata_status: Mapped[str] = mapped_column(String(20), default="pending")
+    metadata_fetched_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime, nullable=True
+    )
+
     # Relationships
     owner = relationship("User", back_populates="documents")
     pages = relationship(
         "SearchPage",
         back_populates="document",
         cascade="all, delete-orphan",
-        order_by="SearchPage.page_number"
+        order_by="SearchPage.page_number",
     )
     extraction_queue = relationship(
         "ExtractionQueue",
         back_populates="document",
         cascade="all, delete-orphan",
-        uselist=False
+        uselist=False,
     )
 
     def to_dict(self) -> dict:
@@ -71,9 +82,24 @@ class SearchDocument(db.Model):
             "uploaded_at": self.uploaded_at.isoformat() if self.uploaded_at else None,
             "extraction_completed_at": (
                 self.extraction_completed_at.isoformat()
-                if self.extraction_completed_at else None
+                if self.extraction_completed_at
+                else None
             ),
-            "is_active": self.is_active
+            "is_active": self.is_active,
+            # CrossRef metadata fields
+            "doi": self.doi,
+            "doi_url": self.doi_url,
+            "publication_year": self.publication_year,
+            "first_author": self.first_author,
+            "co_authors": self.co_authors,
+            "journal_name": self.journal_name,
+            "publisher": self.publisher,
+            "metadata_status": self.metadata_status,
+            "metadata_fetched_at": (
+                self.metadata_fetched_at.isoformat()
+                if self.metadata_fetched_at
+                else None
+            ),
         }
 
     def __repr__(self) -> str:

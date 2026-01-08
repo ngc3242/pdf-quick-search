@@ -11,6 +11,7 @@ export interface User {
 
 // Document types
 export type ExtractionStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type MetadataStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 export interface Document {
   id: number;
@@ -25,6 +26,16 @@ export interface Document {
   uploaded_at: string;
   extraction_completed_at: string | null;
   is_active: boolean;
+  // CrossRef metadata fields (SPEC-CROSSREF-001)
+  doi: string | null;
+  doi_url: string | null;
+  publication_year: number | null;
+  first_author: string | null;
+  co_authors: string[] | null;
+  journal_name: string | null;
+  publisher: string | null;
+  metadata_status: MetadataStatus | null;
+  metadata_fetched_at: string | null;
 }
 
 export interface DocumentsResponse {

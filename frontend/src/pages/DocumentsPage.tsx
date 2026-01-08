@@ -6,8 +6,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from '@/components/common';
 import { PDFViewer } from '@/components/viewer';
+import { AuthorDisplay, DOILink } from '@/components/documents';
 import { useAuthStore, useDocumentStore } from '@/store';
-import type { Document, ExtractionStatus } from '@/types';
+import type { Document, ExtractionStatus, MetadataStatus } from '@/types';
 
 export function DocumentsPage() {
   const navigate = useNavigate();
@@ -145,12 +146,19 @@ export function DocumentsPage() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+  // Metadata loading indicator for CrossRef metadata status
+  const getMetadataStatusIndicator = (status: MetadataStatus | null) => {
+    if (!status || status === 'pending') {
+      return null;
+    }
+    if (status === 'processing') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-blue-600" title="Fetching metadata...">
+          <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+        </span>
+      );
+    }
+    return null;
   };
 
   return (
@@ -255,19 +263,28 @@ export function DocumentsPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[#f9fafb] border-b border-[#dbe0e6]">
-                  <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[40%]">
+                  <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[22%]">
                     File Name
                   </th>
-                  <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                    Date Uploaded
+                  <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[6%]">
+                    Year
                   </th>
-                  <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                    Size
+                  <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[12%]">
+                    First Author
                   </th>
-                  <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                  <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[12%]">
+                    Co-Authors
+                  </th>
+                  <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[14%]">
+                    Journal
+                  </th>
+                  <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[12%]">
+                    DOI
+                  </th>
+                  <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[8%]">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider text-right">
+                  <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider text-right w-[8%]">
                     Actions
                   </th>
                 </tr>
@@ -275,7 +292,7 @@ export function DocumentsPage() {
               <tbody className="divide-y divide-[#dbe0e6]">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center">
+                    <td colSpan={8} className="px-6 py-12 text-center">
                       <span className="material-symbols-outlined text-4xl text-text-secondary animate-spin">
                         progress_activity
                       </span>
@@ -284,7 +301,7 @@ export function DocumentsPage() {
                   </tr>
                 ) : filteredDocuments.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center">
+                    <td colSpan={8} className="px-6 py-12 text-center">
                       <span className="material-symbols-outlined text-4xl text-text-secondary">folder_off</span>
                       <p className="mt-2 text-text-secondary">No documents found</p>
                     </td>
@@ -292,50 +309,80 @@ export function DocumentsPage() {
                 ) : (
                   filteredDocuments.map((doc) => (
                     <tr key={doc.id} className="hover:bg-[#f9fafb] transition-colors group">
-                      <td className="px-6 py-4">
+                      {/* File Name */}
+                      <td className="px-4 py-4">
                         <button
                           onClick={() => handleViewDocument(doc)}
                           className="flex items-center gap-3 text-left hover:text-primary transition-colors"
                           disabled={doc.extraction_status !== 'completed'}
                         >
-                          <div className="size-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                            <span className="material-symbols-outlined text-red-500">picture_as_pdf</span>
+                          <div className="size-9 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+                            <span className="material-symbols-outlined text-red-500 text-[20px]">picture_as_pdf</span>
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-text-primary truncate max-w-[300px]">
+                            <p className="text-sm font-medium text-text-primary truncate max-w-[200px]">
                               {doc.original_filename}
                             </p>
                             <p className="text-xs text-text-secondary">
-                              {doc.page_count ? `${doc.page_count} pages` : 'Processing...'}
+                              {doc.page_count ? `${doc.page_count}p` : ''} {doc.file_size_bytes ? formatFileSize(doc.file_size_bytes) : ''}
                             </p>
                           </div>
                         </button>
                       </td>
-                      <td className="px-6 py-4 text-sm text-text-secondary">
-                        {formatDate(doc.created_at)}
+                      {/* Publication Year (A) */}
+                      <td className="px-4 py-4 text-sm text-text-secondary">
+                        <div className="flex items-center gap-1">
+                          {doc.publication_year || '-'}
+                          {getMetadataStatusIndicator(doc.metadata_status)}
+                        </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-text-secondary">
-                        {formatFileSize(doc.file_size_bytes)}
+                      {/* First Author (B) */}
+                      <td className="px-4 py-4 text-sm text-text-primary">
+                        <AuthorDisplay
+                          firstAuthor={doc.first_author}
+                          coAuthors={doc.co_authors}
+                          type="first"
+                        />
                       </td>
-                      <td className="px-6 py-4">
+                      {/* Co-Authors (C) */}
+                      <td className="px-4 py-4 text-sm text-text-primary">
+                        <AuthorDisplay
+                          firstAuthor={doc.first_author}
+                          coAuthors={doc.co_authors}
+                          type="co"
+                        />
+                      </td>
+                      {/* Journal Name (D) */}
+                      <td className="px-4 py-4 text-sm text-text-secondary">
+                        <span className="truncate block max-w-[150px]" title={doc.journal_name || doc.publisher || undefined}>
+                          {doc.journal_name || doc.publisher || '-'}
+                        </span>
+                      </td>
+                      {/* DOI Link (E) */}
+                      <td className="px-4 py-4 text-sm">
+                        <DOILink doi={doc.doi} doiUrl={doc.doi_url} />
+                      </td>
+                      {/* Status */}
+                      <td className="px-4 py-4">
                         {getStatusBadge(doc.extraction_status)}
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Actions */}
+                      <td className="px-4 py-4 text-right">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => handleViewDocument(doc)}
-                            className="p-2 rounded-lg text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors"
+                            className="p-1.5 rounded-lg text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors"
                             title="View"
                             disabled={doc.extraction_status !== 'completed'}
                           >
-                            <span className="material-symbols-outlined text-[20px]">visibility</span>
+                            <span className="material-symbols-outlined text-[18px]">visibility</span>
                           </button>
                           <button
                             onClick={() => setDeleteTarget(doc)}
-                            className="p-2 rounded-lg text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
+                            className="p-1.5 rounded-lg text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
                             title="Delete"
                           >
-                            <span className="material-symbols-outlined text-[20px]">delete</span>
+                            <span className="material-symbols-outlined text-[18px]">delete</span>
                           </button>
                         </div>
                       </td>
