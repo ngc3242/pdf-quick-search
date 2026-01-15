@@ -202,6 +202,12 @@ export function SearchPage() {
               >
                 Documents
               </button>
+              <button
+                onClick={() => navigate('/typo-checker')}
+                className="text-text-primary text-sm font-medium hover:text-primary transition-colors"
+              >
+                맞춤법 검사
+              </button>
               {isAdmin && (
                 <button
                   onClick={() => navigate('/admin')}

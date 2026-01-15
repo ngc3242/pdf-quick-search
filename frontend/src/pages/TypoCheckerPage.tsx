@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { XMarkIcon, DocumentMagnifyingGlassIcon, ArrowPathIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useTypoCheckerStore } from '@/store';
 import {
@@ -13,6 +14,7 @@ import { typoApi } from '@/api';
 import type { ProviderAvailability } from '@/types';
 
 export const TypoCheckerPage = () => {
+  const navigate = useNavigate();
   const {
     text,
     result,
@@ -89,10 +91,26 @@ export const TypoCheckerPage = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <DocumentMagnifyingGlassIcon className="w-8 h-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">맞춤법 검사</h1>
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <DocumentMagnifyingGlassIcon className="w-8 h-8 text-blue-600" />
+              <h1 className="text-2xl font-bold text-gray-900">맞춤법 검사</h1>
+            </div>
+            <nav className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/')}
+                className="text-gray-600 text-sm font-medium hover:text-blue-600 transition-colors"
+              >
+                홈
+              </button>
+              <button
+                onClick={() => navigate('/documents')}
+                className="text-gray-600 text-sm font-medium hover:text-blue-600 transition-colors"
+              >
+                Documents
+              </button>
+            </nav>
           </div>
         </div>
       </header>

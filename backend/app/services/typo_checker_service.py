@@ -225,7 +225,7 @@ class TypoCheckerService:
         if total == 0:
             return {
                 "success": True,
-                "items": [],
+                "history": [],
                 "total": 0,
                 "page": page,
                 "per_page": per_page,
@@ -244,7 +244,7 @@ class TypoCheckerService:
 
         return {
             "success": True,
-            "items": items,
+            "history": items,
             "total": total,
             "page": page,
             "per_page": per_page,

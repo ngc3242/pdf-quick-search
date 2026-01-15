@@ -10,8 +10,6 @@ interface ResultDisplayProps {
   result: TypoCheckResult;
 }
 
-type ViewMode = 'corrected' | 'diff';
-
 const ISSUE_TYPE_LABELS: Record<TypoIssue['type'], string> = {
   spelling: '맞춤법',
   grammar: '문법',
@@ -40,13 +38,13 @@ const providerDisplayNames: Record<string, string> = {
 };
 
 export const ResultDisplay = ({ result }: ResultDisplayProps) => {
-  const [viewMode, setViewMode] = useState<ViewMode>('corrected');
   const [copied, setCopied] = useState(false);
 
   const hasIssues = result.issues.length > 0;
 
   const handleCopy = async () => {
     try {
+      // Copy only the corrected text without any numbers
       await navigator.clipboard.writeText(result.corrected_text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -55,68 +53,110 @@ export const ResultDisplay = ({ result }: ResultDisplayProps) => {
     }
   };
 
+  // Build ordered issues list (by appearance in text) for consistent numbering
+  const getOrderedIssues = (): { issue: TypoIssue; originalIndex: number }[] => {
+    const orderedIssues: { issue: TypoIssue; originalIndex: number; position: number }[] = [];
+
+    result.issues.forEach((issue, idx) => {
+      const pos = result.corrected_text.indexOf(issue.corrected);
+      if (pos !== -1) {
+        orderedIssues.push({ issue, originalIndex: idx, position: pos });
+      } else {
+        // If not found in text, add at the end
+        orderedIssues.push({ issue, originalIndex: idx, position: Infinity });
+      }
+    });
+
+    // Sort by position in text
+    orderedIssues.sort((a, b) => a.position - b.position);
+
+    return orderedIssues.map(({ issue, originalIndex }) => ({ issue, originalIndex }));
+  };
+
+  const orderedIssues = hasIssues ? getOrderedIssues() : [];
+
   const renderHighlightedText = () => {
     if (!hasIssues) {
       return <p className="whitespace-pre-wrap">{result.corrected_text}</p>;
     }
 
-    // Sort issues by position to render in order
-    const sortedIssues = [...result.issues].sort(
-      (a, b) => a.position.start - b.position.start
-    );
-
+    // Build highlighted text by finding each correction in corrected_text
+    // This works for both live results and history (where original_text is empty)
     const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
+    let searchStartIndex = 0;
+    let correctionNumber = 0;
 
-    sortedIssues.forEach((issue, idx) => {
-      // Add text before the correction
-      if (issue.position.start > lastIndex) {
-        const beforeText = result.corrected_text.slice(lastIndex, issue.position.start);
-        parts.push(<span key={`text-${idx}`}>{beforeText}</span>);
+    // Process issues in order they appear in the text
+    const processedIndices = new Set<number>();
+
+    while (processedIndices.size < result.issues.length) {
+      let earliestIndex = Infinity;
+      let earliestIssue: TypoIssue | null = null;
+      let earliestIssueIdx = -1;
+
+      // Find the next correction that appears earliest in remaining text
+      result.issues.forEach((issue, idx) => {
+        if (processedIndices.has(idx)) return;
+
+        const foundIndex = result.corrected_text.indexOf(issue.corrected, searchStartIndex);
+        if (foundIndex !== -1 && foundIndex < earliestIndex) {
+          earliestIndex = foundIndex;
+          earliestIssue = issue;
+          earliestIssueIdx = idx;
+        }
+      });
+
+      if (!earliestIssue || earliestIndex === Infinity) {
+        // No more corrections found, add remaining text
+        break;
       }
 
-      // Add the highlighted correction
+      // Capture for TypeScript type narrowing
+      const issue: TypoIssue = earliestIssue;
+      correctionNumber++;
+
+      processedIndices.add(earliestIssueIdx);
+
+      // Add text before this correction
+      if (earliestIndex > searchStartIndex) {
+        const beforeText = result.corrected_text.slice(searchStartIndex, earliestIndex);
+        parts.push(<span key={`text-${parts.length}`}>{beforeText}</span>);
+      }
+
+      // Add the correction with proofreading style, number badge, and tooltip
       parts.push(
         <span
-          key={`highlight-${idx}`}
+          key={`correction-${parts.length}`}
           data-testid="highlight-correction"
-          className="bg-green-100 text-green-800 px-1 rounded"
-          title={`${issue.original} → ${issue.corrected}`}
+          className="group relative inline-flex items-baseline gap-1 bg-amber-50 border-b-2 border-amber-400 px-0.5 rounded cursor-help"
         >
-          {issue.corrected}
+          {/* Number badge */}
+          <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-500 rounded-full flex-shrink-0">
+            {correctionNumber}
+          </span>
+          <span className="text-red-500 text-sm line-through decoration-red-500">
+            {issue.original}
+          </span>
+          <span className="text-green-700 font-medium">{issue.corrected}</span>
+          {/* Tooltip */}
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
+            {issue.explanation}
+            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+          </span>
         </span>
       );
 
-      lastIndex = issue.position.end;
-    });
+      searchStartIndex = earliestIndex + issue.corrected.length;
+    }
 
-    // Add remaining text after last correction
-    if (lastIndex < result.corrected_text.length) {
+    // Add any remaining text after the last correction
+    if (searchStartIndex < result.corrected_text.length) {
       parts.push(
-        <span key="text-end">{result.corrected_text.slice(lastIndex)}</span>
+        <span key={`text-end`}>{result.corrected_text.slice(searchStartIndex)}</span>
       );
     }
 
-    return <p className="whitespace-pre-wrap">{parts}</p>;
-  };
-
-  const renderDiffView = () => {
-    return (
-      <div className="space-y-4">
-        <div>
-          <h4 className="text-sm font-medium text-gray-500 mb-2">원본</h4>
-          <p className="whitespace-pre-wrap p-3 bg-red-50 rounded-lg border border-red-100">
-            {result.original_text}
-          </p>
-        </div>
-        <div>
-          <h4 className="text-sm font-medium text-gray-500 mb-2">수정됨</h4>
-          <p className="whitespace-pre-wrap p-3 bg-green-50 rounded-lg border border-green-100">
-            {result.corrected_text}
-          </p>
-        </div>
-      </div>
-    );
+    return <p className="whitespace-pre-wrap leading-relaxed">{parts}</p>;
   };
 
   return (
@@ -153,30 +193,6 @@ export const ResultDisplay = ({ result }: ResultDisplayProps) => {
         </button>
       </div>
 
-      {/* View mode tabs */}
-      <div className="flex border-b border-gray-200">
-        <button
-          onClick={() => setViewMode('corrected')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            viewMode === 'corrected'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          수정된 텍스트
-        </button>
-        <button
-          onClick={() => setViewMode('diff')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            viewMode === 'diff'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          원문 비교
-        </button>
-      </div>
-
       {/* Result content */}
       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[200px]">
         {!hasIssues ? (
@@ -185,10 +201,8 @@ export const ResultDisplay = ({ result }: ResultDisplayProps) => {
             <p className="text-lg font-medium text-gray-900">오류가 없습니다!</p>
             <p className="text-sm text-gray-500 mt-1">입력하신 텍스트에 수정할 내용이 없습니다.</p>
           </div>
-        ) : viewMode === 'corrected' ? (
-          renderHighlightedText()
         ) : (
-          renderDiffView()
+          renderHighlightedText()
         )}
       </div>
 
@@ -197,11 +211,15 @@ export const ResultDisplay = ({ result }: ResultDisplayProps) => {
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-gray-700">수정 내역</h3>
           <div className="space-y-2">
-            {result.issues.map((issue, index) => (
+            {orderedIssues.map(({ issue }, index) => (
               <div
                 key={index}
                 className="p-3 bg-white rounded-lg border border-gray-200 flex items-start gap-3"
               >
+                {/* Number badge matching the text above */}
+                <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full flex-shrink-0">
+                  {index + 1}
+                </span>
                 <span
                   className={`px-2 py-0.5 text-xs font-medium rounded ${ISSUE_TYPE_COLORS[issue.type]}`}
                 >
