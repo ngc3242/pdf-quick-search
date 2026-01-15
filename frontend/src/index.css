@@ -47,19 +47,29 @@
     border-radius: 2px;
   }
 
-  /* PDF search highlight - yellow background for matches */
-  .pdf-search-highlight {
-    background-color: rgba(254, 240, 138, 0.5);
-    color: transparent;
-    padding: 0;
+  /* PDF search highlight overlay - yellow background for matches */
+  /* Uses overlay approach to preserve text selection functionality */
+  .pdf-search-highlight-overlay {
+    background-color: rgba(254, 240, 138, 0.6);
     border-radius: 2px;
     mix-blend-mode: multiply;
+    z-index: 1;
+    pointer-events: none; /* CRITICAL: allows mouse events to pass through for text selection */
   }
 
-  /* PDF search highlight - orange for active/current match */
-  .pdf-search-highlight-active {
-    background-color: rgba(251, 146, 60, 0.5);
-    mix-blend-mode: multiply;
+  /* PDF search highlight overlay - orange for active/current match */
+  .pdf-search-highlight-overlay.pdf-search-highlight-active {
+    background-color: rgba(251, 146, 60, 0.7);
+    animation: pulse-highlight 1s ease-in-out;
+  }
+
+  @keyframes pulse-highlight {
+    0%, 100% {
+      background-color: rgba(251, 146, 60, 0.7);
+    }
+    50% {
+      background-color: rgba(251, 146, 60, 0.9);
+    }
   }
 
   /* Scrollbar hide utility */

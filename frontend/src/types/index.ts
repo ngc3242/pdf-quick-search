@@ -96,3 +96,43 @@ export interface UpdateUserRequest {
 export interface ApiError {
   error: string;
 }
+
+// Typo Checker types (SPEC-TYPOCHECK-001)
+export type TypoProvider = 'claude' | 'openai' | 'gemini';
+
+export interface TypoIssue {
+  original: string;
+  corrected: string;
+  position: {
+    start: number;
+    end: number;
+  };
+  type: 'spelling' | 'grammar' | 'punctuation' | 'style';
+  explanation: string;
+}
+
+export interface TypoCheckResult {
+  original_text: string;
+  corrected_text: string;
+  issues: TypoIssue[];
+  provider: TypoProvider;
+  processing_time_ms: number;
+  chunk_count: number;
+}
+
+export interface TypoCheckRequest {
+  text: string;
+  provider: TypoProvider;
+}
+
+export interface TypoCheckProgress {
+  current_chunk: number;
+  total_chunks: number;
+  percentage: number;
+}
+
+export interface ProviderAvailability {
+  claude: boolean;
+  openai: boolean;
+  gemini: boolean;
+}
