@@ -26,6 +26,8 @@ class GeminiProvider(AIProviderInterface):
     """
 
     DEFAULT_MODEL = "gemini-2.0-flash"
+    # Gemini 2.0 Flash supports up to 8192 output tokens, set to max
+    DEFAULT_MAX_OUTPUT_TOKENS = 8192
 
     SYSTEM_PROMPT = """You are a Korean language expert specializing in proofreading and typo correction.
 Your task is to analyze Korean text and identify all typos, spelling errors, grammar mistakes, and spacing issues.
@@ -60,12 +62,14 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
         self,
         api_key: Optional[str] = None,
         model: Optional[str] = None,
+        max_output_tokens: Optional[int] = None,
     ):
         """Initialize Gemini provider.
 
         Args:
             api_key: Google API key. If not provided, uses GOOGLE_API_KEY or GEMINI_API_KEY env var.
             model: Gemini model to use. Defaults to gemini-2.0-flash.
+            max_output_tokens: Maximum output tokens. Defaults to 8192 (max for Gemini 2.0 Flash).
         """
         self._api_key = (
             api_key
@@ -73,6 +77,7 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
             or os.environ.get("GEMINI_API_KEY")
         )
         self.model = model or self.DEFAULT_MODEL
+        self.max_output_tokens = max_output_tokens or self.DEFAULT_MAX_OUTPUT_TOKENS
         self._client = None
 
     @property
@@ -160,9 +165,14 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
 
 {text}"""
 
+            from google.genai import types
+
             response = client.models.generate_content(
                 model=self.model,
                 contents=prompt,
+                config=types.GenerateContentConfig(
+                    max_output_tokens=self.max_output_tokens,
+                ),
             )
 
             return self._parse_response(text, response)
