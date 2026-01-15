@@ -1,0 +1,50 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script: |
+            cd /var/www/pdf-search
+            
+            # Pull latest changes
+            git pull origin main
+            
+            # Backend: Install any new dependencies
+            cd backend
+            source venv/bin/activate
+            pip install -r requirements.txt --quiet
+            
+            # Frontend: Install and build
+            cd ../frontend
+            npm install --silent
+            npm run build
+            
+            # Set permissions
+            cd ..
+            chown -R www-data:www-data .
+            chmod -R 755 .
+            chmod 700 backend/.env
+            
+            # Restart service
+            systemctl restart pdf-search
+            
+            # Health check
+            sleep 3
+            curl -s http://127.0.0.1:5010/api/health
+            
+            echo "Deployment completed successfully!"
