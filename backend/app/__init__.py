@@ -37,6 +37,7 @@ def create_app(config_name: str = "default") -> Flask:
     from app.routes.search import search_bp
     from app.routes.admin import admin_bp
     from app.routes.typo_checker import typo_checker_bp
+    from app.routes.system_prompts import system_prompts_bp
 
     app.register_blueprint(health_bp, url_prefix="/api")
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -44,6 +45,7 @@ def create_app(config_name: str = "default") -> Flask:
     app.register_blueprint(search_bp, url_prefix="/api/search")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(typo_checker_bp, url_prefix="/api/typo-check")
+    app.register_blueprint(system_prompts_bp, url_prefix="/api/admin/system-prompts")
 
     # Register CLI commands
     from app.cli import register_cli

@@ -7,6 +7,7 @@ from app.models.token_blacklist import TokenBlacklist
 from app.models.page import SearchPage
 from app.models.extraction_queue import ExtractionQueue
 from app.models.typo_check_result import TypoCheckResult
+from app.models.system_prompt import SystemPromptConfig
 
 __all__ = [
     "db",
@@ -16,4 +17,5 @@ __all__ = [
     "SearchPage",
     "ExtractionQueue",
     "TypoCheckResult",
+    "SystemPromptConfig",
 ]

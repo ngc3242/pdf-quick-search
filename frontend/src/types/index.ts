@@ -155,3 +155,25 @@ export interface TypoHistoryResponse {
   per_page: number;
   pages: number;
 }
+
+// System Prompt types (SPEC-SYSPROMPT-001)
+export interface SystemPrompt {
+  provider: TypoProvider;
+  prompt: string;
+  is_active: boolean;
+  is_custom: boolean;
+  updated_at: string | null;
+}
+
+export interface SystemPromptsResponse {
+  prompts: SystemPrompt[];
+}
+
+export interface UpdateSystemPromptRequest {
+  prompt: string;
+}
+
+export interface ResetSystemPromptResponse {
+  message: string;
+  default_prompt: string;
+}

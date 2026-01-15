@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from '@/components/common';
-import { UserFormDialog, PasswordResetDialog } from '@/components/admin';
+import { UserFormDialog, PasswordResetDialog, SystemPromptEditor } from '@/components/admin';
 import { adminApi } from '@/api';
 import { useAuthStore } from '@/store';
 import type { UserWithDocuments, CreateUserRequest, UpdateUserRequest } from '@/types';
 
+type AdminSection = 'users' | 'system-prompts';
+
 export function AdminPage() {
   const navigate = useNavigate();
   const { user: currentUser, logout } = useAuthStore();
+  const [activeSection, setActiveSection] = useState<AdminSection>('users');
   const [users, setUsers] = useState<UserWithDocuments[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -129,11 +132,45 @@ export function AdminPage() {
                 </span>
                 <p className="text-text-primary text-sm font-medium leading-normal">Documents</p>
               </button>
-              <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary">
-                <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+              <button
+                onClick={() => setActiveSection('users')}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                  activeSection === 'users'
+                    ? 'bg-primary/10 text-primary'
+                    : 'hover:bg-background-light group'
+                }`}
+              >
+                <span
+                  className={`material-symbols-outlined text-[24px] ${
+                    activeSection === 'users' ? '' : 'text-text-secondary group-hover:text-primary'
+                  }`}
+                  style={activeSection === 'users' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                >
                   group
                 </span>
-                <p className="text-primary text-sm font-bold leading-normal">User Management</p>
+                <p className={`text-sm leading-normal ${
+                  activeSection === 'users' ? 'text-primary font-bold' : 'text-text-primary font-medium'
+                }`}>User Management</p>
+              </button>
+              <button
+                onClick={() => setActiveSection('system-prompts')}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                  activeSection === 'system-prompts'
+                    ? 'bg-primary/10 text-primary'
+                    : 'hover:bg-background-light group'
+                }`}
+              >
+                <span
+                  className={`material-symbols-outlined text-[24px] ${
+                    activeSection === 'system-prompts' ? '' : 'text-text-secondary group-hover:text-primary'
+                  }`}
+                  style={activeSection === 'system-prompts' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                >
+                  psychology
+                </span>
+                <p className={`text-sm leading-normal ${
+                  activeSection === 'system-prompts' ? 'text-primary font-bold' : 'text-text-primary font-medium'
+                }`}>System Prompts</p>
               </button>
             </div>
           </div>
@@ -179,34 +216,39 @@ export function AdminPage() {
                 Dashboard
               </button>
               <span className="material-symbols-outlined text-text-secondary text-sm">chevron_right</span>
-              <span className="text-text-primary text-sm font-medium leading-normal">User Management</span>
+              <span className="text-text-primary text-sm font-medium leading-normal">
+                {activeSection === 'users' ? 'User Management' : 'System Prompts'}
+              </span>
             </div>
 
-            {/* Page Heading & Actions */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-              <div className="flex flex-col gap-2">
-                <h2 className="text-text-primary text-3xl md:text-4xl font-black leading-tight tracking-tight">
-                  User Management
-                </h2>
-                <p className="text-text-secondary text-base font-normal">
-                  Manage accounts, roles, and view document statistics.
-                </p>
-              </div>
-              <button
-                onClick={() => setIsCreateOpen(true)}
-                className="flex items-center justify-center gap-2 bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-all focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                <span className="material-symbols-outlined text-[20px]">add</span>
-                <span>Create New User</span>
-              </button>
-            </div>
+            {/* Conditional Content Based on Active Section */}
+            {activeSection === 'users' ? (
+              <>
+                {/* Page Heading & Actions */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-text-primary text-3xl md:text-4xl font-black leading-tight tracking-tight">
+                      User Management
+                    </h2>
+                    <p className="text-text-secondary text-base font-normal">
+                      Manage accounts, roles, and view document statistics.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsCreateOpen(true)}
+                    className="flex items-center justify-center gap-2 bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-all focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">add</span>
+                    <span>Create New User</span>
+                  </button>
+                </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
+                {/* Error Message */}
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
 
             {/* Filters & Search Bar */}
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-1 rounded-xl">
@@ -371,6 +413,11 @@ export function AdminPage() {
                 </p>
               </div>
             </div>
+              </>
+            ) : (
+              /* System Prompts Section */
+              <SystemPromptEditor />
+            )}
           </div>
         </main>
       </div>

@@ -110,6 +110,25 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
                 raise
         return self._client
 
+    def get_system_prompt(self) -> str:
+        """Get the system prompt, checking database for custom configuration.
+
+        Returns:
+            Custom prompt from database if available and active,
+            otherwise returns the default SYSTEM_PROMPT.
+        """
+        try:
+            from app.models.system_prompt import SystemPromptConfig
+
+            config = SystemPromptConfig.get_by_provider(self.provider_name)
+            if config and config.is_active:
+                return config.prompt
+        except Exception:
+            # If database is not available, fall back to default
+            pass
+
+        return self.SYSTEM_PROMPT
+
     def check_typo(self, text: str) -> TypoCheckResult:
         """Check Korean text for typos using Gemini API.
 
@@ -132,7 +151,10 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
         try:
             client = self._get_client()
 
-            prompt = f"""{self.SYSTEM_PROMPT}
+            # Get system prompt (custom from DB or default)
+            system_prompt = self.get_system_prompt()
+
+            prompt = f"""{system_prompt}
 
 다음 한국어 텍스트의 맞춤법, 띄어쓰기, 문법 오류를 검사해주세요:
 
