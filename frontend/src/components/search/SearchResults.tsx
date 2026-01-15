@@ -83,19 +83,17 @@ export function SearchResults({
         {Object.values(groupedResults).map(({ document, snippets }) => (
           <article
             key={document.id}
-            className="flex flex-col bg-white rounded-xl p-5 border border-[#e5e7eb] shadow-sm hover:shadow-md transition-all"
+            onClick={() => onDocumentClick(document, snippets[0]?.page_number || 1)}
+            className="flex flex-col bg-white rounded-xl p-5 border border-[#e5e7eb] shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 {/* Document Header */}
                 <div className="flex items-center gap-2 mb-2">
                   <span className="material-symbols-outlined text-red-500 text-[24px]">picture_as_pdf</span>
-                  <button
-                    onClick={() => onDocumentClick(document, snippets[0]?.page_number || 1)}
-                    className="text-lg font-bold text-primary hover:underline decoration-2 underline-offset-2"
-                  >
+                  <span className="text-lg font-bold text-primary group-hover:underline decoration-2 underline-offset-2">
                     {document.original_filename}
-                  </button>
+                  </span>
                   <span className="text-xs text-text-secondary font-medium">
                     {document.file_size_bytes && `• ${formatFileSize(document.file_size_bytes)}`} {document.page_count && `• ${document.page_count} pages`}
                   </span>
@@ -112,7 +110,10 @@ export function SearchResults({
                         Page {snippet.page_number}
                       </span>
                       <button
-                        onClick={() => onDocumentClick(document, snippet.page_number)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDocumentClick(document, snippet.page_number);
+                        }}
                         className="text-primary text-sm font-semibold hover:text-blue-700 flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-blue-50"
                       >
                         View in context{' '}

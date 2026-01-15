@@ -206,7 +206,8 @@ export function PDFViewer({
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, []);
 
-  // Function to apply highlights to the text layer
+  // Function to apply highlights using overlay approach (doesn't modify text layer)
+  // This preserves text selection functionality by not modifying DOM structure
   const applyHighlights = useCallback(() => {
     if (!searchQuery?.trim()) return;
 
@@ -214,19 +215,16 @@ export function PDFViewer({
     const textLayer = window.document.querySelector('.react-pdf__Page__textContent');
     if (!textLayer) return;
 
-    // Clear previous highlights
-    const existingHighlights = textLayer.querySelectorAll('.pdf-search-highlight');
-    existingHighlights.forEach((el) => {
-      const parent = el.parentNode;
-      if (parent) {
-        parent.replaceChild(window.document.createTextNode(el.textContent || ''), el);
-        parent.normalize();
-      }
-    });
+    // Clear previous highlight overlays
+    const existingOverlays = textLayer.querySelectorAll('.pdf-search-highlight-overlay');
+    existingOverlays.forEach((el) => el.remove());
 
     const query = searchQuery.toLowerCase().trim();
     const newHighlights: HighlightMatch[] = [];
     let matchIndex = 0;
+
+    // Get text layer position for relative positioning
+    const textLayerRect = textLayer.getBoundingClientRect();
 
     // Get all text spans in the text layer
     const textSpans = textLayer.querySelectorAll('span');
@@ -234,44 +232,46 @@ export function PDFViewer({
     textSpans.forEach((span) => {
       const text = span.textContent || '';
       const lowerText = text.toLowerCase();
-      let lastIndex = 0;
       let searchIndex = lowerText.indexOf(query);
 
       if (searchIndex === -1) return;
 
-      // Build new content with highlights
-      const fragment = window.document.createDocumentFragment();
-
+      // For each match in this span, create an overlay highlight
       while (searchIndex !== -1) {
-        // Add text before match
-        if (searchIndex > lastIndex) {
-          fragment.appendChild(
-            window.document.createTextNode(text.slice(lastIndex, searchIndex))
-          );
+        const range = window.document.createRange();
+        const textNode = span.firstChild;
+
+        if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+          try {
+            range.setStart(textNode, searchIndex);
+            range.setEnd(textNode, Math.min(searchIndex + query.length, text.length));
+
+            const rangeRect = range.getBoundingClientRect();
+
+            // Create highlight overlay
+            const highlightOverlay = window.document.createElement('div');
+            highlightOverlay.className = 'pdf-search-highlight-overlay';
+            highlightOverlay.dataset.matchIndex = String(matchIndex);
+
+            // Position relative to text layer
+            highlightOverlay.style.position = 'absolute';
+            highlightOverlay.style.left = `${rangeRect.left - textLayerRect.left}px`;
+            highlightOverlay.style.top = `${rangeRect.top - textLayerRect.top}px`;
+            highlightOverlay.style.width = `${rangeRect.width}px`;
+            highlightOverlay.style.height = `${rangeRect.height}px`;
+            highlightOverlay.style.pointerEvents = 'none';
+
+            textLayer.appendChild(highlightOverlay);
+            newHighlights.push({ element: highlightOverlay, index: matchIndex });
+            matchIndex++;
+          } catch (e) {
+            // Range API failed, skip this match
+            console.warn('Failed to create highlight range:', e);
+          }
         }
 
-        // Add highlighted match
-        const highlightSpan = window.document.createElement('mark');
-        highlightSpan.className = 'pdf-search-highlight';
-        highlightSpan.textContent = text.slice(searchIndex, searchIndex + query.length);
-        highlightSpan.dataset.matchIndex = String(matchIndex);
-        fragment.appendChild(highlightSpan);
-
-        newHighlights.push({ element: highlightSpan, index: matchIndex });
-        matchIndex++;
-
-        lastIndex = searchIndex + query.length;
-        searchIndex = lowerText.indexOf(query, lastIndex);
+        searchIndex = lowerText.indexOf(query, searchIndex + query.length);
       }
-
-      // Add remaining text
-      if (lastIndex < text.length) {
-        fragment.appendChild(window.document.createTextNode(text.slice(lastIndex)));
-      }
-
-      // Replace span content
-      span.textContent = '';
-      span.appendChild(fragment);
     });
 
     setHighlights(newHighlights);

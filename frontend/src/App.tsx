@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/auth';
-import { LoginPage, SearchPage, DocumentsPage, AdminPage } from '@/pages';
+import { LoginPage, SearchPage, DocumentsPage, AdminPage, TypoCheckerPage } from '@/pages';
 
 function App() {
   return (
@@ -24,6 +24,15 @@ function App() {
           element={
             <ProtectedRoute>
               <DocumentsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/typo-checker"
+          element={
+            <ProtectedRoute>
+              <TypoCheckerPage />
             </ProtectedRoute>
           }
         />
