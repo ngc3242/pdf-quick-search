@@ -101,6 +101,25 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
             self._client = Anthropic(api_key=self._api_key)
         return self._client
 
+    def get_system_prompt(self) -> str:
+        """Get the system prompt, checking database for custom configuration.
+
+        Returns:
+            Custom prompt from database if available and active,
+            otherwise returns the default SYSTEM_PROMPT.
+        """
+        try:
+            from app.models.system_prompt import SystemPromptConfig
+
+            config = SystemPromptConfig.get_by_provider(self.provider_name)
+            if config and config.is_active:
+                return config.prompt
+        except Exception:
+            # If database is not available, fall back to default
+            pass
+
+        return self.SYSTEM_PROMPT
+
     def check_typo(self, text: str) -> TypoCheckResult:
         """Check Korean text for typos using Claude API.
 
@@ -124,11 +143,14 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
         try:
             client = self._get_client()
 
+            # Get system prompt (custom from DB or default)
+            system_prompt = self.get_system_prompt()
+
             # Make API request
             response = client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
-                system=self.SYSTEM_PROMPT,
+                system=system_prompt,
                 messages=[
                     {
                         "role": "user",
@@ -174,6 +196,15 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
         try:
             # Extract text content from response
             response_text = response.content[0].text
+
+            # Remove markdown code block if present
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.startswith("```"):
+                response_text = response_text[3:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            response_text = response_text.strip()
 
             # Parse JSON response
             data = json.loads(response_text)
