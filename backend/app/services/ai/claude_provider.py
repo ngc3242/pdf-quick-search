@@ -29,7 +29,7 @@ class ClaudeProvider(AIProviderInterface):
     """
 
     DEFAULT_MODEL = "claude-sonnet-4-20250514"
-    DEFAULT_MAX_TOKENS = 4096
+    DEFAULT_MAX_TOKENS = 16384
 
     SYSTEM_PROMPT = """You are a Korean language expert specializing in proofreading and typo correction.
 Your task is to analyze Korean text and identify all typos, spelling errors, grammar mistakes, and spacing issues.
