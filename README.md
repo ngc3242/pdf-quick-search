@@ -22,6 +22,11 @@ PDF document management and search service with user isolation.
   - Smart text chunking for long documents (up to 100,000 characters)
   - HTML/PDF report generation
   - Real-time progress tracking
+- System Prompt Management (SPEC-SYSPROMPT-001)
+  - Admin interface for managing AI provider system prompts
+  - Support for Claude, Gemini, and OpenAI providers
+  - Database persistence with automatic fallback to defaults
+  - Real-time prompt updates across all AI operations
 
 ## System Architecture
 
@@ -207,6 +212,10 @@ The application comes with default test accounts:
 | POST | /api/typo-checker | Yes | Check text for typos |
 | GET | /api/typo-checker/providers | Yes | List available AI providers |
 | GET | /api/typo-checker/{id}/report | Yes | Download HTML/PDF report |
+| GET | /api/admin/system-prompts | Yes (Admin) | List all system prompts |
+| GET | /api/admin/system-prompts/{provider} | Yes (Admin) | Get specific provider prompt |
+| PUT | /api/admin/system-prompts/{provider} | Yes (Admin) | Update system prompt |
+| POST | /api/admin/system-prompts/{provider}/reset | Yes (Admin) | Reset to default prompt |
 
 ## Testing
 
@@ -235,6 +244,7 @@ pdf_quick_search/
 │   ├── src/
 │   │   ├── components/      # React components
 │   │   │   ├── admin/       # Admin-specific components
+│   │   │   │   └── SystemPromptEditor.tsx
 │   │   │   ├── auth/        # Authentication components
 │   │   │   ├── common/      # Shared UI components
 │   │   │   ├── documents/   # Document management
