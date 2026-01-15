@@ -16,6 +16,12 @@ PDF document management and search service with user isolation.
   - CrossRef API integration with caching (7-day TTL)
   - Author display with "et al." abbreviation for 3+ authors
   - Clickable DOI links to original papers
+- AI-Based Typo Checker (SPEC-TYPOCHECK-001)
+  - Multi-provider support (Claude, OpenAI, Gemini)
+  - Korean text typo checking (spelling, spacing, particles, loanwords)
+  - Smart text chunking for long documents (up to 100,000 characters)
+  - HTML/PDF report generation
+  - Real-time progress tracking
 
 ## System Architecture
 
@@ -42,6 +48,10 @@ PDF document management and search service with user isolation.
 - PyJWT for authentication
 - pdfplumber for PDF text extraction
 - requests for CrossRef API integration
+- anthropic for Claude AI integration
+- openai for OpenAI integration
+- google-generativeai for Gemini integration
+- weasyprint for PDF report generation
 
 **Frontend:**
 - React 19.2
@@ -194,6 +204,9 @@ The application comes with default test accounts:
 | GET | /api/documents/{id} | Yes | Document detail (owner check) |
 | DELETE | /api/documents/{id} | Yes | Delete document (owner check) |
 | GET | /api/documents/{id}/file | Yes | PDF download (Range support) |
+| POST | /api/typo-checker | Yes | Check text for typos |
+| GET | /api/typo-checker/providers | Yes | List available AI providers |
+| GET | /api/typo-checker/{id}/report | Yes | Download HTML/PDF report |
 
 ## Testing
 
@@ -226,6 +239,7 @@ pdf_quick_search/
 │   │   │   ├── common/      # Shared UI components
 │   │   │   ├── documents/   # Document management
 │   │   │   ├── search/      # Search functionality
+│   │   │   ├── typo/         # Typo checker components
 │   │   │   └── viewer/      # PDF viewer
 │   │   ├── pages/           # Page components
 │   │   │   ├── LoginPage.tsx
