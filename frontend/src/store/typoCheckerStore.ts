@@ -47,7 +47,7 @@ const initialState = {
   result: null,
   isLoading: false,
   error: null,
-  selectedProvider: 'claude' as TypoProvider,
+  selectedProvider: 'gemini' as TypoProvider,
   progress: null,
   // History initial state (SPEC-HISTORY-001)
   history: [] as TypoHistoryItem[],

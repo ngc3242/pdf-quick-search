@@ -54,7 +54,7 @@ const createMockStore = (overrides = {}) => ({
   result: null,
   isLoading: false,
   error: null,
-  selectedProvider: 'claude' as const,
+  selectedProvider: 'gemini' as const,
   progress: null,
   setText: vi.fn(),
   setProvider: vi.fn(),

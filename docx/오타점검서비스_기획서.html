@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오타 점검 웹 서비스 기획서</title>
+    <style>
+        @media print {
+            body { font-size: 10pt; }
+            h1 { page-break-before: always; }
+            h1:first-of-type { page-break-before: avoid; }
+            pre { page-break-inside: avoid; }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+            line-height: 1.8;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 30px;
+            color: #1a1a1a;
+            background: #fff;
+        }
+
+        h1 {
+            color: #1e3a5f;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 15px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-size: 2em;
+        }
+
+        h1:first-of-type {
+            margin-top: 0;
+            text-align: center;
+            border-bottom: none;
+            font-size: 2.2em;
+        }
+
+        h2 {
+            color: #1e40af;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-left: 5px solid #3b82f6;
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: #3730a3;
+            margin-top: 30px;
+            font-size: 1.2em;
+        }
+
+        h4 {
+            color: #4338ca;
+            margin-top: 25px;
+            font-size: 1.1em;
+        }
+
+        p {
+            margin: 15px 0;
+            text-align: justify;
+        }
+
+        strong {
+            color: #1e40af;
+        }
+
+        code {
+            background: #f1f5f9;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85em;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            font-size: 0.95em;
+        }
+
+        th {
+            background: #1e40af;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 15px;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #f1f5f9;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #e2e8f0;
+            margin: 40px 0;
+        }
+
+        li {
+            margin: 8px 0;
+            margin-left: 20px;
+        }
+
+        .checkbox {
+            display: inline-block;
+            width: 18px;
+            margin-right: 8px;
+        }
+
+        .checkbox.checked {
+            color: #16a34a;
+        }
+
+        /* Cover page styling */
+        body > h1:first-of-type + p {
+            text-align: center;
+            color: #64748b;
+            font-size: 1.1em;
+        }
+
+        /* Footer */
+        body::after {
+            content: "";
+            display: block;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+<h1>오타 점검 웹 서비스 기획서</h1>
+<strong>작성일</strong>: 2026년 1월 15일
+<strong>버전</strong>: 1.0
+<strong>작성자</strong>: 김송희
+<hr>
+<h2>1. 프로젝트 개요</h2>
+<h3>1.1 서비스 소개</h3>
+텍스트를 입력하면 AI(Claude)가 자동으로 오타를 점검하고, 깔끔한 HTML 또는 PDF 보고서로 결과를 제공하는 웹 서비스입니다.
+<h3>1.2 개발 배경</h3>
+<li>학술 논문, 보고서 등 긴 문서의 오타 점검에 많은 시간 소요</li>
+<li>기존 맞춤법 검사기는 문맥을 고려하지 못하는 한계</li>
+<li>AI 기반 점검으로 더 정확하고 상세한 피드백 제공 필요</li>
+<h3>1.3 목표</h3>
+<li>팀/조직 내부에서 간편하게 사용 가능한 오타 점검 도구 제공</li>
+<li>맞춤법, 띄어쓰기, 조사, 외래어 표기 등 종합적인 검토</li>
+<li>보고서 형태로 결과 제공 (HTML/PDF 다운로드)</li>
+<h3>1.4 대상 사용자</h3>
+<li>팀/조직 내부 구성원 (비밀번호 인증)</li>
+<hr>
+<h2>2. 기술 스택</h2>
+<table>
+<tr><th>구분</th><th>기술</th><th>설명</th></tr>
+<tr><td><strong>Backend</strong></td><td>Python + FastAPI</td><td>빠르고 현대적인 웹 프레임워크</td></tr>
+<tr><td><strong>AI</strong></td><td>Claude API (Anthropic)</td><td>고품질 한국어 오타 점검</td></tr>
+<tr><td><strong>PDF 생성</strong></td><td>WeasyPrint</td><td>HTML → PDF 변환</td></tr>
+<tr><td><strong>Frontend</strong></td><td>HTML + Tailwind CSS + JS</td><td>반응형 웹 UI</td></tr>
+<tr><td><strong>인증</strong></td><td>세션 기반</td><td>간단한 비밀번호 보호</td></tr>
+<tr><td><strong>배포</strong></td><td>Cafe24 VPS</td><td>클라우드 서버</td></tr>
+</table>
+<hr>
+<h2>3. 시스템 아키텍처</h2>
+<h3>3.1 전체 구조</h3>
+<pre><code class="language-">┌─────────────────────────────────────────────────────────────┐
+│                        사용자 브라우저                         │
+└─────────────────────────┬───────────────────────────────────┘
+                          │ HTTPS
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     Cafe24 VPS 서버                          │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │                    FastAPI Application                  │ │
+│  │  ┌──────────┐  ┌──────────────┐  ┌──────────────────┐ │ │
+│  │  │ 인증     │  │ 오타 점검    │  │ 보고서 생성      │ │ │
+│  │  │ 미들웨어 │  │ 라우터       │  │ 서비스           │ │ │
+│  │  └──────────┘  └──────┬───────┘  └────────┬─────────┘ │ │
+│  │                       │                    │           │ │
+│  │                       ▼                    ▼           │ │
+│  │              ┌──────────────┐      ┌──────────────┐   │ │
+│  │              │ Claude       │      │ WeasyPrint   │   │ │
+│  │              │ Service      │      │ PDF Engine   │   │ │
+│  │              └──────┬───────┘      └──────────────┘   │ │
+│  └─────────────────────┼──────────────────────────────────┘ │
+└─────────────────────────┼───────────────────────────────────┘
+                          │ API 호출
+                          ▼
+               ┌─────────────────────┐
+               │   Anthropic API     │
+               │   (Claude)          │
+               └─────────────────────┘
+</code></pre>
+<h3>3.2 프로젝트 디렉토리 구조</h3>
+<pre><code class="language-">typo-checker/
+│
+├── app/
+│   ├── __init__.py
+│   ├── main.py                 # FastAPI 앱 엔트리포인트
+│   ├── config.py               # 환경 설정
+│   │
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   ├── auth.py             # 인증 라우터
+│   │   └── checker.py          # 오타 점검 API 라우터
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── claude_service.py   # Claude API 연동
+│   │   └── report_service.py   # HTML/PDF 보고서 생성
+│   │
+│   ├── templates/
+│   │   ├── base.html           # 기본 레이아웃
+│   │   ├── index.html          # 메인 페이지
+│   │   ├── login.html          # 로그인 페이지
+│   │   └── report.html         # 보고서 템플릿
+│   │
+│   └── static/
+│       ├── css/
+│       │   └── style.css
+│       └── js/
+│           └── main.js
+│
+├── tests/
+│   ├── test_checker.py
+│   └── test_report.py
+│
+├── requirements.txt
+├── .env                        # 환경 변수 (Git 제외)
+├── .env.example                # 환경 변수 예시
+├── .gitignore
+└── README.md
+</code></pre>
+<hr>
+<h2>4. 기능 명세</h2>
+<h3>4.1 사용자 인터페이스</h3>
+<h4>4.1.1 로그인 페이지 (<code>/login</code>)</h4>
+<li>비밀번호 입력 필드</li>
+<li>로그인 버튼</li>
+<li>세션 유지 (브라우저 종료 시까지)</li>
+<h4>4.1.2 메인 페이지 (<code>/</code>)</h4>
+<table>
+<tr><th>요소</th><th>설명</th></tr>
+<tr><td>텍스트 입력 영역</td><td>대용량 텍스트 입력 가능한 textarea</td></tr>
+<tr><td>출력 형식 선택</td><td>HTML / PDF 라디오 버튼</td></tr>
+<tr><td>점검 버튼</td><td>"오타 점검 시작" 버튼</td></tr>
+<tr><td>진행 표시</td><td>프로그레스 바 + 상태 메시지</td></tr>
+<tr><td>결과 미리보기</td><td>점검 완료 후 결과 요약 표시</td></tr>
+<tr><td>다운로드 버튼</td><td>HTML/PDF 파일 다운로드</td></tr>
+</table>
+<h3>4.2 API 명세</h3>
+<h4>4.2.1 인증 API</h4>
+<strong>POST /api/login</strong>
+<pre><code class="language-json">// Request
+{
+  "password": "팀비밀번호"
+}
+<p>// Response (성공)
+{
+  "success": true,
+  "message": "로그인 성공"
+}</p>
+<p>// Response (실패)
+{
+  "success": false,
+  "message": "비밀번호가 올바르지 않습니다"
+}
+</code></pre></p>
+<h4>4.2.2 오타 점검 API</h4>
+<strong>POST /api/check</strong>
+<pre><code class="language-json">// Request
+{
+  "text": "점검할 텍스트 내용...",
+  "format": "html"  // "html" 또는 "pdf"
+}
+<p>// Response
+{
+  "success": true,
+  "report_id": "abc123",
+  "summary": {
+    "total_typos": 15,
+    "by_type": {
+      "맞춤법": 5,
+      "띄어쓰기": 6,
+      "조사": 2,
+      "외래어": 1,
+      "문장부호": 1
+    }
+  },
+  "typos": [
+    {
+      "id": 1,
+      "type": "맞춤법",
+      "context": "이 문서는 <strong>맞춤핼습</strong>에 대한 내용입니다.",
+      "original": "맞춤핼습",
+      "suggestion": "맞춤학습",
+      "explanation": "'핼'은 '학'의 오타입니다."
+    }
+    // ... 추가 오타들
+  ]
+}
+</code></pre></p>
+<h4>4.2.3 보고서 다운로드 API</h4>
+<strong>GET /api/report/{report_id}?format=html</strong>
+<li>HTML 파일 반환</li>
+<strong>GET /api/report/{report_id}?format=pdf</strong>
+<li>PDF 파일 반환 (다운로드)</li>
+<h3>4.3 오타 점검 항목</h3>
+<table>
+<tr><th>점검 항목</th><th>예시</th></tr>
+<tr><td>맞춤법 오류</td><td>맞춤핼습 → 맞춤학습</td></tr>
+<tr><td>띄어쓰기 오류</td><td>20236월 → 2023년 6월</td></tr>
+<tr><td>조사 사용 오류</td><td>Twitter과 → Twitter와</td></tr>
+<tr><td>중복 표현</td><td>목표한다 → 목표로 한다</td></tr>
+<tr><td>문장 부호 오류</td><td>마침표 누락, 이중 공백</td></tr>
+<tr><td>외래어 표기법</td><td>컨텐츠 → 콘텐츠</td></tr>
+</table>
+<hr>
+<h2>5. 핵심 구현 상세</h2>
+<h3>5.1 Claude API 연동</h3>
+<h4>5.1.1 프롬프트 설계</h4>
+<pre><code class="language-python">TYPO_CHECK_PROMPT = """
+당신은 전문 한국어 교정 편집자입니다.
+다음 텍스트의 오타를 꼼꼼히 점검해주세요.
+<h2>점검 항목</h2>
+<li>맞춤법 오류</li>
+<li>띄어쓰기 오류</li>
+<li>조사 사용 오류 (은/는, 이/가, 을/를, 와/과 등)</li>
+<li>중복 표현</li>
+<li>문장 부호 오류</li>
+<li>외래어 표기법 오류</li>
+<h2>응답 형식</h2>
+반드시 아래 JSON 형식으로만 응답하세요:
+<p>{
+  "typos": [
+    {
+      "type": "오류 유형",
+      "context": "앞뒤 맥락을 포함한 문장. <strong>오타부분</strong>을 볼드로 표시",
+      "original": "원본 텍스트",
+      "suggestion": "수정 제안",
+      "explanation": "오류 이유 설명"
+    }
+  ]
+}</p>
+<p>오타가 없으면 빈 배열 {"typos": []}을 반환하세요.</p>
+<h2>점검할 텍스트:</h2>
+{text}
+"""
+</code></pre>
+<h4>5.1.2 청크 분할 로직</h4>
+<pre><code class="language-python">def split_text_into_chunks(text: str, max_chars: int = 8000) -&gt; list[str]:
+    """
+    긴 텍스트를 문단 단위로 청크 분할
+    - 문단 경계를 유지하여 문맥 보존
+    - 각 청크는 max_chars 이하로 유지
+    """
+    paragraphs = text.split('\n\n')
+    chunks = []
+    current_chunk = ""
+<p>for para in paragraphs:
+        if len(current_chunk) + len(para) &lt; max_chars:
+            current_chunk += para + "\n\n"
+        else:
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+            current_chunk = para + "\n\n"</p>
+<p>if current_chunk:
+        chunks.append(current_chunk.strip())</p>
+<p>return chunks
+</code></pre></p>
+<h3>5.2 보고서 생성</h3>
+<h4>5.2.1 HTML 템플릿 스타일</h4>
+<pre><code class="language-css">/* 보고서 핵심 스타일 */
+body {
+    font-family: 'Apple SD Gothic Neo', sans-serif;
+    line-height: 1.8;
+    max-width: 800px;
+    margin: 0 auto;
+}
+<p>.typo-item {
+    background: #fefce8;
+    border-left: 4px solid #eab308;
+    padding: 15px;
+    margin: 15px 0;
+}</p>
+<p>.typo-original {
+    color: #dc2626;
+    background: #fef2f2;
+    padding: 2px 6px;
+    font-weight: bold;
+}</p>
+<p>.typo-suggestion {
+    color: #16a34a;
+    background: #f0fdf4;
+    padding: 2px 6px;
+}
+</code></pre></p>
+<h4>5.2.2 PDF 생성</h4>
+<pre><code class="language-python">from weasyprint import HTML
+<p>def generate_pdf(html_content: str) -&gt; bytes:
+    """HTML을 PDF로 변환"""
+    html = HTML(string=html_content)
+    return html.write_pdf()
+</code></pre></p>
+<hr>
+<h2>6. 보안 고려사항</h2>
+<h3>6.1 인증</h3>
+<li>비밀번호는 환경 변수로 관리</li>
+<li>세션 기반 인증 (쿠키 + 서버 세션)</li>
+<li>브루트포스 방지: 5회 실패 시 1분 대기</li>
+<h3>6.2 API 키 보호</h3>
+<li>Anthropic API 키는 서버 측에서만 사용</li>
+<li>클라이언트에 노출되지 않음</li>
+<li><code>.env</code> 파일은 Git에서 제외</li>
+<h3>6.3 입력 검증</h3>
+<li>텍스트 길이 제한 (최대 100,000자)</li>
+<li>XSS 방지를 위한 HTML 이스케이프</li>
+<hr>
+<h2>7. 배포 가이드</h2>
+<h3>7.1 서버 요구사항</h3>
+<li>OS: Ubuntu 20.04 이상</li>
+<li>Python: 3.10 이상</li>
+<li>RAM: 최소 1GB</li>
+<li>저장공간: 10GB 이상</li>
+<h3>7.2 설치 순서</h3>
+<pre><code class="language-bash"># 1. 시스템 패키지 설치
+sudo apt update
+sudo apt install python3 python3-pip python3-venv
+sudo apt install libpango-1.0-0 libpangocairo-1.0-0  # WeasyPrint 의존성
+<h1>2. 프로젝트 디렉토리 생성</h1>
+mkdir -p /home/user/typo-checker
+cd /home/user/typo-checker
+<h1>3. 프로젝트 파일 업로드 (scp 또는 git clone)</h1>
+scp -r ./typo-checker/* user@server:/home/user/typo-checker/
+<h1>4. 가상환경 생성 및 활성화</h1>
+python3 -m venv venv
+source venv/bin/activate
+<h1>5. 패키지 설치</h1>
+pip install -r requirements.txt
+<h1>6. 환경 변수 설정</h1>
+cp .env.example .env
+nano .env  # API 키와 비밀번호 입력
+<h1>7. 서비스 실행 (개발)</h1>
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+<h1>8. 서비스 실행 (프로덕션 - systemd)</h1>
+sudo nano /etc/systemd/system/typo-checker.service
+</code></pre>
+<h3>7.3 systemd 서비스 설정</h3>
+<pre><code class="language-ini">[Unit]
+Description=Typo Checker Web Service
+After=network.target
+<p>[Service]
+User=user
+Group=user
+WorkingDirectory=/home/user/typo-checker
+Environment="PATH=/home/user/typo-checker/venv/bin"
+ExecStart=/home/user/typo-checker/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always</p>
+<p>[Install]
+WantedBy=multi-user.target
+</code></pre></p>
+<pre><code class="language-bash"># 서비스 활성화 및 시작
+sudo systemctl enable typo-checker
+sudo systemctl start typo-checker
+sudo systemctl status typo-checker
+</code></pre>
+<h3>7.4 Nginx 리버스 프록시 (선택)</h3>
+<pre><code class="language-nginx">server {
+    listen 80;
+    server_name typo.yourdomain.com;
+<p>location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+</code></pre></p>
+<hr>
+<h2>8. 필요 패키지</h2>
+<h3>requirements.txt</h3>
+<pre><code class="language-">fastapi==0.109.0
+uvicorn[standard]==0.27.0
+anthropic==0.18.0
+weasyprint==60.2
+python-multipart==0.0.6
+jinja2==3.1.3
+python-dotenv==1.0.0
+itsdangerous==2.1.2
+aiofiles==23.2.1
+</code></pre>
+<hr>
+<h2>9. 환경 변수</h2>
+<h3>.env.example</h3>
+<pre><code class="language-bash"># Anthropic API
+ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxx
+<h1>서비스 인증</h1>
+SERVICE_PASSWORD=your_team_password_here
+<h1>서버 설정</h1>
+DEBUG=false
+HOST=0.0.0.0
+PORT=8000
+<h1>보안</h1>
+SECRET_KEY=your_random_secret_key_here
+</code></pre>
+<hr>
+<h2>10. 향후 개선 사항</h2>
+<h3>10.1 단기</h3>
+<span class="checkbox">☐</span> 파일 업로드 지원 (txt, docx, hwp)
+<span class="checkbox">☐</span> 점검 이력 저장 및 조회
+<span class="checkbox">☐</span> 다크 모드 UI
+<h3>10.2 중기</h3>
+<span class="checkbox">☐</span> 사용자별 계정 관리
+<span class="checkbox">☐</span> 커스텀 점검 규칙 설정
+<span class="checkbox">☐</span> API 사용량 모니터링
+<h3>10.3 장기</h3>
+<span class="checkbox">☐</span> 실시간 협업 편집
+<span class="checkbox">☐</span> 다국어 지원
+<span class="checkbox">☐</span> 자체 AI 모델 학습
+<hr>
+<h2>부록 A. 예상 비용</h2>
+<h3>Claude API 비용 (2026년 1월 기준)</h3>
+<table>
+<tr><th>모델</th><th>입력</th><th>출력</th></tr>
+<tr><td>Claude 3.5 Sonnet</td><td>$3 / 1M tokens</td><td>$15 / 1M tokens</td></tr>
+<tr><td>Claude 3 Haiku</td><td>$0.25 / 1M tokens</td><td>$1.25 / 1M tokens</td></tr>
+</table>
+<strong>예상 사용량</strong> (월 100건, 평균 10,000자/건 기준)
+<li>입력: ~500K tokens → 약 $1.5</li>
+<li>출력: ~100K tokens → 약 $1.5</li>
+<li><strong>월 예상 비용: 약 $3~5</strong></li>
+<hr>
+<h2>부록 B. 테스트 체크리스트</h2>
+<span class="checkbox">☐</span> 로그인 성공/실패 테스트
+<span class="checkbox">☐</span> 빈 텍스트 입력 시 에러 처리
+<span class="checkbox">☐</span> 최대 길이 텍스트 처리
+<span class="checkbox">☐</span> HTML 보고서 생성 확인
+<span class="checkbox">☐</span> PDF 보고서 생성 확인
+<span class="checkbox">☐</span> 한글 폰트 정상 표시 (PDF)
+<span class="checkbox">☐</span> 동시 다중 요청 처리
+<span class="checkbox">☐</span> API 키 오류 시 에러 처리
+<hr>
+<p>*문서 끝*</p>
+</body>
+</html>

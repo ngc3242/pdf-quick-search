@@ -1,0 +1,28 @@
+[Unit]
+Description=PDF Quick Search Flask Backend
+After=network.target postgresql.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/pdf-search/backend
+Environment="PATH=/var/www/pdf-search/backend/venv/bin"
+Environment="FLASK_ENV=production"
+ExecStart=/var/www/pdf-search/backend/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:5010 "app:create_app('production')"
+Restart=always
+RestartSec=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pdf-search
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/pdf-search/backend/storage
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
