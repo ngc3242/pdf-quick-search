@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>맞춤법 검사 결과 보고서</title>
+    <style>
+        @font-face {
+            font-family: 'Noto Sans KR';
+            src: local('Noto Sans KR'), local('NotoSansKR');
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .report-header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .report-meta {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .corrected-text {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .summary-item .count {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .summary-item .label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .issues-list {
+            list-style: none;
+        }
+
+        .issue-item {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .issue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .issue-type {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .issue-type.spelling {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .issue-type.spacing {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .issue-type.grammar {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .issue-type.punctuation {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .issue-type.other {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .issue-position {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .issue-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .issue-original {
+            background: #fee2e2;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-decoration: line-through;
+            color: #dc2626;
+        }
+
+        .issue-arrow {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .issue-corrected {
+            background: #d1fae5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #059669;
+            font-weight: bold;
+        }
+
+        .issue-explanation {
+            font-size: 14px;
+            color: #666;
+            padding-left: 10px;
+            border-left: 3px solid #e0e0e0;
+        }
+
+        .no-issues {
+            text-align: center;
+            padding: 40px;
+            color: #059669;
+        }
+
+        .no-issues .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .provider-info {
+            font-size: 12px;
+            color: #888;
+            text-align: right;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            padding-top: 20px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .section {
+                box-shadow: none;
+                border: 1px solid #e0e0e0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <h1>맞춤법 검사 결과 보고서</h1>
+        <div class="report-meta">
+            생성일시: {{ created_at }}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">검사 요약</h2>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="count">{{ total_issues }}</div>
+                <div class="label">발견된 문제</div>
+            </div>
+            <div class="summary-item">
+                <div class="count">{{ spelling_count }}</div>
+                <div class="label">맞춤법 오류</div>
+            </div>
+            <div class="summary-item">
+                <div class="count">{{ spacing_count }}</div>
+                <div class="label">띄어쓰기 오류</div>
+            </div>
+            <div class="summary-item">
+                <div class="count">{{ grammar_count }}</div>
+                <div class="label">문법 오류</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">수정된 텍스트</h2>
+        <div class="corrected-text">{{ corrected_text }}</div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">발견된 문제 상세</h2>
+        {% if issues %}
+        <ul class="issues-list">
+            {% for issue in issues %}
+            <li class="issue-item">
+                <div class="issue-header">
+                    <span class="issue-type {{ issue.issue_type }}">
+                        {{ issue.issue_type_korean }}
+                    </span>
+                    <span class="issue-position">위치: {{ issue.position }}</span>
+                </div>
+                <div class="issue-content">
+                    <span class="issue-original">{{ issue.original }}</span>
+                    <span class="issue-arrow">→</span>
+                    <span class="issue-corrected">{{ issue.corrected }}</span>
+                </div>
+                {% if issue.explanation %}
+                <div class="issue-explanation">{{ issue.explanation }}</div>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="no-issues">
+            <div class="icon">✓</div>
+            <div>발견된 문제가 없습니다.</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="provider-info">
+        AI 제공자: {{ provider }}
+    </div>
+
+    <div class="footer">
+        PDF Quick Search - 맞춤법 검사 보고서
+    </div>
+</body>
+</html>
