@@ -136,3 +136,22 @@ export interface ProviderAvailability {
   openai: boolean;
   gemini: boolean;
 }
+
+// Typo History types (SPEC-HISTORY-001)
+export interface TypoHistoryItem {
+  id: number;
+  corrected_text: string;
+  issues: TypoIssue[];
+  provider: TypoProvider;
+  created_at: string;
+  issue_count: number;
+}
+
+export interface TypoHistoryResponse {
+  success: boolean;
+  history: TypoHistoryItem[];
+  total: number;
+  page: number;
+  per_page: number;
+  pages: number;
+}
