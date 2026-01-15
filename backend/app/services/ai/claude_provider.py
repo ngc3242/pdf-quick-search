@@ -4,9 +4,10 @@ This module implements the AIProviderInterface using Anthropic's Claude API
 to provide Korean text typo checking functionality.
 """
 
-import os
 import json
-from typing import Optional, List
+import logging
+import os
+from typing import List, Optional
 
 from anthropic import Anthropic
 
@@ -15,6 +16,9 @@ from app.services.ai.ai_provider_interface import (
     TypoCheckResult,
     TypoIssue,
 )
+
+# Configure logger for this module
+logger = logging.getLogger(__name__)
 
 
 class ClaudeProvider(AIProviderInterface):
@@ -195,16 +199,29 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
 
         try:
             # Extract text content from response
-            response_text = response.content[0].text
+            raw_response_text = response.content[0].text
+            logger.info(
+                "[Claude] Raw response length: %d chars", len(raw_response_text)
+            )
+            logger.debug("[Claude] Raw response: %s", raw_response_text[:500])
+
+            response_text = raw_response_text
 
             # Remove markdown code block if present
             if response_text.startswith("```json"):
                 response_text = response_text[7:]
+                logger.debug("[Claude] Removed ```json prefix")
             if response_text.startswith("```"):
                 response_text = response_text[3:]
+                logger.debug("[Claude] Removed ``` prefix")
             if response_text.endswith("```"):
                 response_text = response_text[:-3]
+                logger.debug("[Claude] Removed ``` suffix")
             response_text = response_text.strip()
+
+            logger.debug(
+                "[Claude] Cleaned response (first 300 chars): %s", response_text[:300]
+            )
 
             # Parse JSON response
             data = json.loads(response_text)
@@ -234,6 +251,8 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
             )
 
         except json.JSONDecodeError as e:
+            logger.error("[Claude] JSON decode error: %s", str(e))
+            logger.error("[Claude] Failed to parse response: %s", raw_response_text)
             return TypoCheckResult(
                 original_text=original_text,
                 corrected_text="",
@@ -243,6 +262,7 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
                 error_message=f"Invalid JSON response: {str(e)}",
             )
         except Exception as e:
+            logger.error("[Claude] Unexpected error: %s", str(e), exc_info=True)
             return TypoCheckResult(
                 original_text=original_text,
                 corrected_text="",
