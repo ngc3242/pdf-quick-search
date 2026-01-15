@@ -7,14 +7,14 @@ provider selection, result aggregation, and caching.
 
 import hashlib
 import json
-from typing import Dict, List, Optional, Any
+import logging
+from typing import Any, Dict, List, Optional
 
 from app import db
 from app.models.typo_check_result import TypoCheckResult
-from app.services.ai.claude_provider import ClaudeProvider
-from app.services.ai.ai_provider_interface import (
-    AIProviderInterface,
-)
+from app.services.ai.ai_provider_interface import AIProviderInterface
+
+logger = logging.getLogger(__name__)
 
 
 # Maximum text length allowed (100K characters)
@@ -32,15 +32,25 @@ class TypoCheckerService:
     """
 
     # Registry of available providers
-    _provider_registry = {
-        "claude": ClaudeProvider,
-    }
+    _provider_registry: dict = {}
+
+    @classmethod
+    def _init_providers(cls):
+        """Initialize provider registry with lazy imports."""
+        if not cls._provider_registry:
+            from app.services.ai.claude_provider import ClaudeProvider
+            from app.services.ai.openai_provider import OpenAIProvider
+            from app.services.ai.gemini_provider import GeminiProvider
+
+            cls._provider_registry = {
+                "claude": ClaudeProvider,
+                "openai": OpenAIProvider,
+                "gemini": GeminiProvider,
+            }
 
     @staticmethod
     def check_text(
-        text: str,
-        user_id: str,
-        provider: Optional[str] = None
+        text: str, user_id: str, provider: Optional[str] = None
     ) -> Dict[str, Any]:
         """Check text for typos and return corrections.
 
@@ -79,15 +89,16 @@ class TypoCheckerService:
         # Check cache first
         text_hash = hashlib.sha256(text.encode()).hexdigest()
         cached_result = TypoCheckResult.query.filter_by(
-            user_id=user_id,
-            original_text_hash=text_hash
+            user_id=user_id, original_text_hash=text_hash
         ).first()
 
         if cached_result:
             return {
                 "success": True,
                 "corrected_text": cached_result.corrected_text,
-                "issues": json.loads(cached_result.issues) if cached_result.issues else [],
+                "issues": json.loads(cached_result.issues)
+                if cached_result.issues
+                else [],
                 "provider": cached_result.provider_used,
                 "cached": True,
             }
@@ -148,6 +159,17 @@ class TypoCheckerService:
         final_corrected = "".join(corrected_chunks)
         provider_name = ai_provider.provider_name
 
+        # If corrected text is significantly shorter than original,
+        # reconstruct it by applying issues to original text
+        if len(final_corrected) < len(text) * 0.5:
+            logger.info(
+                f"Reconstructing corrected text: original={len(text)}, "
+                f"returned={len(final_corrected)}, issues={len(all_issues)}"
+            )
+            final_corrected = TypoCheckerService._reconstruct_corrected_text(
+                text, all_issues
+            )
+
         # Store result in database
         db_result = TypoCheckResult(
             user_id=user_id,
@@ -168,20 +190,127 @@ class TypoCheckerService:
         }
 
     @staticmethod
+    def get_user_history(
+        user_id: str, page: int = 1, per_page: int = 20
+    ) -> Dict[str, Any]:
+        """Get paginated history of typo check results for a user.
+
+        Args:
+            user_id: User ID to get history for
+            page: Page number (1-indexed)
+            per_page: Number of results per page
+
+        Returns:
+            Dictionary containing:
+                - success: Boolean indicating success
+                - items: List of result dictionaries
+                - total: Total number of results
+                - page: Current page number
+                - per_page: Results per page
+                - pages: Total number of pages
+
+        Note:
+            Original text is NOT stored (only hash for caching).
+            Results are ordered by created_at descending (newest first).
+        """
+        # Query user's results, ordered by newest first
+        query = TypoCheckResult.query.filter_by(user_id=user_id).order_by(
+            TypoCheckResult.created_at.desc()
+        )
+
+        # Get total count
+        total = query.count()
+
+        # Calculate pagination
+        if total == 0:
+            return {
+                "success": True,
+                "items": [],
+                "total": 0,
+                "page": page,
+                "per_page": per_page,
+                "pages": 0,
+            }
+
+        # Calculate total pages
+        pages = (total + per_page - 1) // per_page
+
+        # Get paginated results
+        offset = (page - 1) * per_page
+        results = query.offset(offset).limit(per_page).all()
+
+        # Convert to dictionaries
+        items = [result.to_dict() for result in results]
+
+        return {
+            "success": True,
+            "items": items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
+
+    @staticmethod
+    def delete_result(result_id: int, user_id: str) -> Dict[str, Any]:
+        """Delete a typo check result.
+
+        Args:
+            result_id: ID of the result to delete
+            user_id: User ID requesting the deletion (for ownership check)
+
+        Returns:
+            Dictionary containing:
+                - success: Boolean indicating success
+                - error: Error message if failed
+        """
+        # Find the result
+        result = TypoCheckResult.query.filter_by(id=result_id).first()
+
+        if not result:
+            return {
+                "success": False,
+                "error": "Result not found",
+            }
+
+        # Check ownership
+        if result.user_id != user_id:
+            return {
+                "success": False,
+                "error": "Access denied",
+            }
+
+        # Delete the result
+        db.session.delete(result)
+        db.session.commit()
+
+        return {
+            "success": True,
+        }
+
+    @staticmethod
     def get_available_providers() -> List[str]:
         """Get list of available AI providers.
 
         Returns:
             List of provider names that are currently available
         """
+        # Initialize providers
+        TypoCheckerService._init_providers()
+
         available = []
         for name, provider_class in TypoCheckerService._provider_registry.items():
             try:
                 provider = provider_class()
-                if provider.is_available():
+                is_avail = provider.is_available()
+                logger.info(f"[DEBUG] Provider '{name}' is_available: {is_avail}")
+                if is_avail:
                     available.append(name)
-            except Exception:
+            except Exception as e:
+                logger.error(f"[DEBUG] Provider '{name}' error: {e}")
                 continue
+
+        logger.info(f"[DEBUG] Available providers: {available}")
         return available
 
     @staticmethod
@@ -194,6 +323,7 @@ class TypoCheckerService:
         Returns:
             Provider instance or None if not found
         """
+        TypoCheckerService._init_providers()
         provider_class = TypoCheckerService._provider_registry.get(name)
         if provider_class:
             try:
@@ -209,6 +339,7 @@ class TypoCheckerService:
         Returns:
             First available provider or None
         """
+        TypoCheckerService._init_providers()
         # Try providers in order of preference
         preference_order = ["claude", "openai", "gemini"]
 
@@ -224,6 +355,57 @@ class TypoCheckerService:
                 return provider
 
         return None
+
+    @staticmethod
+    def _reconstruct_corrected_text(original_text: str, issues: List[Dict]) -> str:
+        """Reconstruct corrected text by applying issues to original.
+
+        When AI providers return truncated corrected_text, this method
+        rebuilds the full corrected text by applying each issue's
+        correction to the original text.
+
+        Args:
+            original_text: The original text
+            issues: List of issue dictionaries with original/corrected pairs
+
+        Returns:
+            Reconstructed corrected text
+        """
+        if not issues:
+            return original_text
+
+        # Sort issues by position in reverse order to apply from end to start
+        # This prevents position shifts from affecting subsequent replacements
+        sorted_issues = sorted(
+            issues,
+            key=lambda x: x.get("position", 0),
+            reverse=True,
+        )
+
+        result = original_text
+
+        for issue in sorted_issues:
+            original = issue.get("original", "")
+            corrected = issue.get("corrected", "")
+            position = issue.get("position", 0)
+
+            if not original or original == corrected:
+                continue
+
+            # Try to find and replace at the specified position first
+            if position >= 0 and position < len(result):
+                # Check if the original text matches at the position
+                end_pos = position + len(original)
+                if result[position:end_pos] == original:
+                    result = result[:position] + corrected + result[end_pos:]
+                    continue
+
+            # Fallback: find first occurrence and replace
+            idx = result.find(original)
+            if idx != -1:
+                result = result[:idx] + corrected + result[idx + len(original) :]
+
+        return result
 
     @staticmethod
     def _chunk_text(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE) -> List[str]:

@@ -63,6 +63,20 @@ const createMockStore = (overrides = {}) => ({
   cancelCheck: vi.fn(),
   reset: vi.fn(),
   clearError: vi.fn(),
+  // History state and actions (SPEC-HISTORY-001)
+  history: [],
+  historyPage: 1,
+  historyPerPage: 20,
+  historyTotal: 0,
+  historyPages: 0,
+  isHistoryLoading: false,
+  historyError: null,
+  selectedHistoryId: null,
+  deletingId: null,
+  loadHistory: vi.fn(),
+  selectHistory: vi.fn(),
+  deleteHistory: vi.fn(),
+  clearHistorySelection: vi.fn(),
   ...overrides,
 });
 
@@ -84,7 +98,7 @@ describe('TypoCheckerPage', () => {
       });
 
       renderWithRouter(<TypoCheckerPage />);
-      expect(screen.getByText(/맞춤법 검사|Typo Checker/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /맞춤법 검사/ })).toBeInTheDocument();
     });
 
     it('should render text input area', () => {

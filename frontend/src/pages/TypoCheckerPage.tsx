@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { XMarkIcon, DocumentMagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, DocumentMagnifyingGlassIcon, ArrowPathIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useTypoCheckerStore } from '@/store';
 import {
   TextInput,
@@ -7,6 +7,7 @@ import {
   ResultDisplay,
   ReportDownload,
   ProgressIndicator,
+  HistoryPanel,
 } from '@/components/typo';
 import { typoApi } from '@/api';
 import type { ProviderAvailability } from '@/types';
@@ -25,6 +26,16 @@ export const TypoCheckerPage = () => {
     cancelCheck,
     reset,
     clearError,
+    // History state and actions (SPEC-HISTORY-001)
+    history,
+    isHistoryLoading,
+    historyError,
+    selectedHistoryId,
+    deletingId,
+    loadHistory,
+    selectHistory,
+    deleteHistory,
+    clearHistorySelection,
   } = useTypoCheckerStore();
 
   const [providerAvailability, setProviderAvailability] = useState<ProviderAvailability>({
@@ -46,14 +57,30 @@ export const TypoCheckerPage = () => {
     };
 
     fetchAvailability();
-  }, []);
 
-  const handleCheck = () => {
-    checkTypo();
+    // Load history on mount (REQ-E-004)
+    loadHistory();
+  }, [loadHistory]);
+
+  const handleCheck = async () => {
+    await checkTypo();
+    // Refresh history after new check (REQ-E-001)
+    loadHistory();
   };
 
   const handleReset = () => {
     reset();
+    clearHistorySelection();
+  };
+
+  // Handle history item selection (REQ-E-002)
+  const handleHistorySelect = (id: number) => {
+    selectHistory(id);
+  };
+
+  // Handle history item delete (REQ-E-003)
+  const handleHistoryDelete = async (id: number) => {
+    await deleteHistory(id);
   };
 
   const canCheck = text.trim().length > 0 && !isLoading;
@@ -71,112 +98,142 @@ export const TypoCheckerPage = () => {
       </header>
 
       {/* Main content */}
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        <div className="space-y-6">
-          {/* Error message */}
-          {error && (
-            <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700">{error}</p>
-              <button
-                onClick={clearError}
-                className="p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded transition-colors"
-                aria-label="닫기"
-              >
-                <XMarkIcon className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-
-          {/* Input section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="space-y-4">
-              {/* Provider selector */}
-              <div className="max-w-xs">
-                <ProviderSelector
-                  value={selectedProvider}
-                  onChange={setProvider}
-                  availability={providerAvailability}
-                  disabled={isLoading}
-                  label="AI 모델 선택"
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex gap-6">
+          {/* History Panel - Left Sidebar */}
+          <aside className="w-80 flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-24">
+              <div className="flex items-center gap-2 mb-4">
+                <ClockIcon className="w-5 h-5 text-gray-500" />
+                <h2 className="text-lg font-semibold text-gray-900">검사 기록</h2>
+              </div>
+              <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+                <HistoryPanel
+                  history={history}
+                  isLoading={isHistoryLoading}
+                  error={historyError}
+                  selectedHistoryId={selectedHistoryId}
+                  deletingId={deletingId}
+                  onSelect={handleHistorySelect}
+                  onDelete={handleHistoryDelete}
                 />
               </div>
+            </div>
+          </aside>
 
-              {/* Text input */}
-              <TextInput
-                value={text}
-                onChange={setText}
-                disabled={isLoading}
-                label="검사할 텍스트"
-                placeholder="맞춤법을 검사할 텍스트를 입력하세요... (최대 100,000자)"
-              />
-
-              {/* Action buttons */}
-              <div className="flex items-center gap-3">
+          {/* Main Content Area */}
+          <div className="flex-1 space-y-6">
+            {/* Error message */}
+            {error && (
+              <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700">{error}</p>
                 <button
-                  onClick={handleCheck}
-                  disabled={!canCheck}
-                  className={`
-                    flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-lg
-                    bg-blue-600 text-white
-                    hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    transition-colors
-                  `}
+                  onClick={clearError}
+                  className="p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded transition-colors"
+                  aria-label="닫기"
                 >
-                  {isLoading ? (
-                    <>
-                      <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                      검사 중...
-                    </>
-                  ) : (
-                    <>
-                      <DocumentMagnifyingGlassIcon className="w-4 h-4" />
-                      검사하기
-                    </>
-                  )}
+                  <XMarkIcon className="w-5 h-5" />
                 </button>
+              </div>
+            )}
 
-                {(text || result) && (
-                  <button
-                    onClick={handleReset}
+            {/* Input section */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="space-y-4">
+                {/* Provider selector */}
+                <div className="max-w-xs">
+                  <ProviderSelector
+                    value={selectedProvider}
+                    onChange={setProvider}
+                    availability={providerAvailability}
                     disabled={isLoading}
+                    label="AI 모델 선택"
+                  />
+                </div>
+
+                {/* Text input */}
+                <TextInput
+                  value={text}
+                  onChange={setText}
+                  disabled={isLoading}
+                  label="검사할 텍스트"
+                  placeholder="맞춤법을 검사할 텍스트를 입력하세요... (최대 100,000자)"
+                />
+
+                {/* Action buttons */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleCheck}
+                    disabled={!canCheck}
                     className={`
-                      flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg
-                      border border-gray-300 text-gray-700 bg-white
-                      hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                      flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-lg
+                      bg-blue-600 text-white
+                      hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                       disabled:opacity-50 disabled:cursor-not-allowed
                       transition-colors
                     `}
                   >
-                    <ArrowPathIcon className="w-4 h-4" />
-                    새로 검사
+                    {isLoading ? (
+                      <>
+                        <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                        검사 중...
+                      </>
+                    ) : (
+                      <>
+                        <DocumentMagnifyingGlassIcon className="w-4 h-4" />
+                        검사하기
+                      </>
+                    )}
                   </button>
+
+                  {(text || result) && (
+                    <button
+                      onClick={handleReset}
+                      disabled={isLoading}
+                      className={`
+                        flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg
+                        border border-gray-300 text-gray-700 bg-white
+                        hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                        transition-colors
+                      `}
+                    >
+                      <ArrowPathIcon className="w-4 h-4" />
+                      새로 검사
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Progress indicator */}
+            {isLoading && progress && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <ProgressIndicator
+                  progress={progress}
+                  onCancel={cancelCheck}
+                  statusMessage="텍스트를 분석하고 있습니다..."
+                />
+              </div>
+            )}
+
+            {/* Result section */}
+            {result && !isLoading && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
+                {selectedHistoryId && (
+                  <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
+                    <ClockIcon className="w-4 h-4" />
+                    <span>기록에서 불러온 결과입니다</span>
+                  </div>
                 )}
+                <ResultDisplay result={result} />
+                <div className="pt-4 border-t border-gray-200">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">결과 다운로드</h3>
+                  <ReportDownload result={result} />
+                </div>
               </div>
-            </div>
+            )}
           </div>
-
-          {/* Progress indicator */}
-          {isLoading && progress && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <ProgressIndicator
-                progress={progress}
-                onCancel={cancelCheck}
-                statusMessage="텍스트를 분석하고 있습니다..."
-              />
-            </div>
-          )}
-
-          {/* Result section */}
-          {result && !isLoading && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
-              <ResultDisplay result={result} />
-              <div className="pt-4 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">결과 다운로드</h3>
-                <ReportDownload result={result} />
-              </div>
-            </div>
-          )}
         </div>
       </main>
     </div>
