@@ -26,7 +26,8 @@ class OpenAIProvider(AIProviderInterface):
     """
 
     DEFAULT_MODEL = "gpt-5.2"
-    DEFAULT_MAX_TOKENS = 16384
+    # GPT-5.2 supports up to 128,000 max output tokens
+    DEFAULT_MAX_TOKENS = 128000
 
     SYSTEM_PROMPT = """You are a Korean language expert specializing in proofreading and typo correction.
 Your task is to analyze Korean text and identify all typos, spelling errors, grammar mistakes, and spacing issues.
