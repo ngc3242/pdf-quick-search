@@ -88,9 +88,15 @@ class TypoCheckerService:
 
         # Check cache first
         text_hash = hashlib.sha256(text.encode()).hexdigest()
-        cached_result = TypoCheckResult.query.filter_by(
-            user_id=user_id, original_text_hash=text_hash
-        ).first()
+        try:
+            cached_result = TypoCheckResult.query.filter_by(
+                user_id=user_id, original_text_hash=text_hash
+            ).first()
+        except Exception as e:
+            # Rollback failed transaction to allow retry
+            logger.warning(f"Cache lookup failed, rolling back: {e}")
+            db.session.rollback()
+            cached_result = None
 
         if cached_result:
             return {
@@ -171,15 +177,20 @@ class TypoCheckerService:
             )
 
         # Store result in database
-        db_result = TypoCheckResult(
-            user_id=user_id,
-            original_text_hash=text_hash,
-            corrected_text=final_corrected,
-            issues=json.dumps(all_issues),
-            provider_used=provider_name,
-        )
-        db.session.add(db_result)
-        db.session.commit()
+        try:
+            db_result = TypoCheckResult(
+                user_id=user_id,
+                original_text_hash=text_hash,
+                corrected_text=final_corrected,
+                issues=json.dumps(all_issues),
+                provider_used=provider_name,
+            )
+            db.session.add(db_result)
+            db.session.commit()
+        except Exception as e:
+            # Rollback and log, but still return the result
+            logger.error(f"Failed to cache result: {e}")
+            db.session.rollback()
 
         return {
             "success": True,
