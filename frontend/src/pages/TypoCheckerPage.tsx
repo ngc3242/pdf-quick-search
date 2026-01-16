@@ -102,7 +102,7 @@ export const TypoCheckerPage = () => {
                 onClick={() => navigate('/')}
                 className="text-gray-600 text-sm font-medium hover:text-blue-600 transition-colors"
               >
-                홈
+                PDF Quick Search
               </button>
               <button
                 onClick={() => navigate('/documents')}
