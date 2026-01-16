@@ -155,7 +155,7 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
 
             response = client.chat.completions.create(
                 model=self.model,
-                max_tokens=self.max_tokens,
+                max_completion_tokens=self.max_tokens,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {
