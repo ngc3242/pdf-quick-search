@@ -25,9 +25,9 @@ class GeminiProvider(AIProviderInterface):
     grammar, and spacing errors.
     """
 
-    DEFAULT_MODEL = "gemini-2.0-flash"
-    # Gemini 2.0 Flash supports up to 8192 output tokens, set to max
-    DEFAULT_MAX_OUTPUT_TOKENS = 8192
+    DEFAULT_MODEL = "gemini-3-flash-preview"
+    # Gemini 3 Flash Preview supports higher output tokens
+    DEFAULT_MAX_OUTPUT_TOKENS = 65536
 
     SYSTEM_PROMPT = """You are a Korean language expert specializing in proofreading and typo correction.
 Your task is to analyze Korean text and identify all typos, spelling errors, grammar mistakes, and spacing issues.

@@ -28,7 +28,7 @@ class ClaudeProvider(AIProviderInterface):
     grammar, and spacing errors.
     """
 
-    DEFAULT_MODEL = "claude-sonnet-4-20250514"
+    DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
     DEFAULT_MAX_TOKENS = 16384
 
     SYSTEM_PROMPT = """You are a Korean language expert specializing in proofreading and typo correction.

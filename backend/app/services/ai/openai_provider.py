@@ -25,7 +25,7 @@ class OpenAIProvider(AIProviderInterface):
     grammar, and spacing errors.
     """
 
-    DEFAULT_MODEL = "gpt-4o"
+    DEFAULT_MODEL = "gpt-5.2"
     DEFAULT_MAX_TOKENS = 16384
 
     SYSTEM_PROMPT = """You are a Korean language expert specializing in proofreading and typo correction.
