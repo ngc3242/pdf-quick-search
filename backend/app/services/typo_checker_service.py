@@ -86,28 +86,33 @@ class TypoCheckerService:
                 "provider": None,
             }
 
-        # Check cache first
+        # Check cache first (only if provider is specified)
         text_hash = hashlib.sha256(text.encode()).hexdigest()
-        try:
-            cached_result = TypoCheckResult.query.filter_by(
-                user_id=user_id, original_text_hash=text_hash
-            ).first()
-        except Exception as e:
-            # Rollback failed transaction to allow retry
-            logger.warning(f"Cache lookup failed, rolling back: {e}")
-            db.session.rollback()
-            cached_result = None
+        cached_result = None
 
-        if cached_result:
-            return {
-                "success": True,
-                "corrected_text": cached_result.corrected_text,
-                "issues": json.loads(cached_result.issues)
-                if cached_result.issues
-                else [],
-                "provider": cached_result.provider_used,
-                "cached": True,
-            }
+        if provider:
+            try:
+                cached_result = TypoCheckResult.query.filter_by(
+                    user_id=user_id,
+                    original_text_hash=text_hash,
+                    provider_used=provider,
+                ).first()
+            except Exception as e:
+                # Rollback failed transaction to allow retry
+                logger.warning(f"Cache lookup failed, rolling back: {e}")
+                db.session.rollback()
+                cached_result = None
+
+            if cached_result:
+                return {
+                    "success": True,
+                    "corrected_text": cached_result.corrected_text,
+                    "issues": json.loads(cached_result.issues)
+                    if cached_result.issues
+                    else [],
+                    "provider": cached_result.provider_used,
+                    "cached": True,
+                }
 
         # Get provider
         if provider:
