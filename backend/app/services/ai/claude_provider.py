@@ -29,8 +29,8 @@ class ClaudeProvider(AIProviderInterface):
     """
 
     DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
-    # Claude Sonnet 4.5 supports up to 64K (65,536) max output tokens
-    DEFAULT_MAX_TOKENS = 65536
+    # Reasonable max tokens for typo checking (avoids streaming requirement)
+    DEFAULT_MAX_TOKENS = 8192
 
     SYSTEM_PROMPT = """You are a Korean language expert specializing in proofreading and typo correction.
 Your task is to analyze Korean text and identify all typos, spelling errors, grammar mistakes, and spacing issues.
