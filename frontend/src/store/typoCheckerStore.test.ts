@@ -276,6 +276,7 @@ describe('useTypoCheckerStore', () => {
   describe('History State', () => {
     const mockHistoryItem: TypoHistoryItem = {
       id: 1,
+      original_text: '안녕하세요 반갑슴니다',
       corrected_text: '안녕하세요 반갑습니다',
       issues: [
         {

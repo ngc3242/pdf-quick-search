@@ -23,6 +23,7 @@ class TypoCheckResult(db.Model):
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     original_text_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    original_text: Mapped[str] = mapped_column(Text, nullable=False, default="")
     corrected_text: Mapped[str] = mapped_column(Text, nullable=False)
     issues: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     provider_used: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -49,9 +50,10 @@ class TypoCheckResult(db.Model):
             "id": self.id,
             "user_id": self.user_id,
             "original_text_hash": self.original_text_hash,
+            "original_text": self.original_text,
             "corrected_text": self.corrected_text,
             "issues": issues_list,
-            "provider_used": self.provider_used,
+            "provider": self.provider_used,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 

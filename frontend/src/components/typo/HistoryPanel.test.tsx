@@ -11,6 +11,7 @@ describe('HistoryPanel', () => {
   const mockHistoryItems: TypoHistoryItem[] = [
     {
       id: 1,
+      original_text: '안녕하세요 반갑슴니다',
       corrected_text: '안녕하세요 반갑습니다',
       issues: [
         {
@@ -27,6 +28,7 @@ describe('HistoryPanel', () => {
     },
     {
       id: 2,
+      original_text: '테스트 텍스트입니다',
       corrected_text: '테스트 텍스트입니다',
       issues: [],
       provider: 'gemini',

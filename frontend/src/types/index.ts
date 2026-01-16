@@ -140,6 +140,7 @@ export interface ProviderAvailability {
 // Typo History types (SPEC-HISTORY-001)
 export interface TypoHistoryItem {
   id: number;
+  original_text: string;
   corrected_text: string;
   issues: TypoIssue[];
   provider: TypoProvider;

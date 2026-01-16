@@ -181,6 +181,7 @@ class TypoCheckerService:
             db_result = TypoCheckResult(
                 user_id=user_id,
                 original_text_hash=text_hash,
+                original_text=text,
                 corrected_text=final_corrected,
                 issues=json.dumps(all_issues),
                 provider_used=provider_name,

@@ -144,14 +144,20 @@ export const useTypoCheckerStore = create<TypoCheckerState>((set, get) => ({
     if (historyItem) {
       // Convert TypoHistoryItem to TypoCheckResult format
       const result: TypoCheckResult = {
-        original_text: '', // Not available in history
+        original_text: historyItem.original_text,
         corrected_text: historyItem.corrected_text,
         issues: historyItem.issues,
         provider: historyItem.provider,
         processing_time_ms: 0, // Not available in history
         chunk_count: 0, // Not available in history
       };
-      set({ selectedHistoryId: id, result });
+      // Also restore the text input and provider selection
+      set({
+        selectedHistoryId: id,
+        result,
+        text: historyItem.original_text,
+        selectedProvider: historyItem.provider,
+      });
     } else {
       set({ selectedHistoryId: id });
     }
