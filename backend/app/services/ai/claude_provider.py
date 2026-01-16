@@ -134,8 +134,22 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
         Returns:
             TypoCheckResult containing corrections and issues found
         """
+        logger.info("[Claude] ========== START check_typo ==========")
+        logger.info("[Claude] Input text length: %d chars", len(text))
+        logger.info(
+            "[Claude] Input text preview: %s...",
+            text[:200] if len(text) > 200 else text,
+        )
+
         # Check if API key is available
+        api_key_exists = self._api_key is not None
+        api_key_length = len(self._api_key) if self._api_key else 0
+        logger.info(
+            "[Claude] API key exists: %s, length: %d", api_key_exists, api_key_length
+        )
+
         if not self.is_available():
+            logger.error("[Claude] API key is not configured!")
             return TypoCheckResult(
                 original_text=text,
                 corrected_text="",
@@ -146,12 +160,18 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
             )
 
         try:
+            logger.info("[Claude] Creating Anthropic client...")
             client = self._get_client()
+            logger.info("[Claude] Client created successfully")
 
             # Get system prompt (custom from DB or default)
             system_prompt = self.get_system_prompt()
+            logger.info("[Claude] System prompt length: %d chars", len(system_prompt))
+            logger.info("[Claude] Using model: %s", self.model)
+            logger.info("[Claude] Max tokens: %d", self.max_tokens)
 
             # Make API request
+            logger.info("[Claude] Sending API request...")
             response = client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
@@ -163,11 +183,39 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown formattin
                     }
                 ],
             )
+            logger.info("[Claude] API response received!")
+            logger.info("[Claude] Response id: %s", getattr(response, "id", "N/A"))
+            logger.info(
+                "[Claude] Response model: %s", getattr(response, "model", "N/A")
+            )
+            logger.info(
+                "[Claude] Response stop_reason: %s",
+                getattr(response, "stop_reason", "N/A"),
+            )
+
+            # Log usage info
+            if hasattr(response, "usage"):
+                logger.info(
+                    "[Claude] Usage - input_tokens: %d, output_tokens: %d",
+                    response.usage.input_tokens,
+                    response.usage.output_tokens,
+                )
 
             # Parse response
-            return self._parse_response(text, response)
+            result = self._parse_response(text, response)
+            logger.info(
+                "[Claude] Parse result - success: %s, issues_count: %d",
+                result.success,
+                len(result.issues),
+            )
+            logger.info("[Claude] ========== END check_typo ==========")
+            return result
 
         except Exception as e:
+            logger.error("[Claude] ========== EXCEPTION ==========")
+            logger.error("[Claude] Exception type: %s", type(e).__name__)
+            logger.error("[Claude] Exception message: %s", str(e))
+            logger.error("[Claude] Full exception:", exc_info=True)
             return TypoCheckResult(
                 original_text=text,
                 corrected_text="",
