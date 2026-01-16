@@ -53,6 +53,7 @@ class TypoCheckResult(db.Model):
             "original_text": self.original_text,
             "corrected_text": self.corrected_text,
             "issues": issues_list,
+            "issue_count": len(issues_list),
             "provider": self.provider_used,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
