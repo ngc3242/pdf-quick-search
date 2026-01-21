@@ -1,7 +1,9 @@
 """Admin service for user management."""
 
+import shutil
 from typing import List, Optional, Tuple
 
+from flask import current_app
 from sqlalchemy import func
 
 from app.models import db
@@ -238,3 +240,80 @@ class AdminService:
 
         documents = SearchDocument.query.filter_by(owner_id=user_id).all()
         return [doc.to_dict() for doc in documents], None
+
+    @staticmethod
+    def get_storage_stats() -> dict:
+        """Get overall storage statistics.
+
+        Returns:
+            dict with:
+            - total_documents: int
+            - total_size_bytes: int
+            - users: list of {user_id, user_name, user_email, document_count, total_size_bytes}
+        """
+        # Get total documents count
+        total_documents = db.session.query(func.count(SearchDocument.id)).scalar() or 0
+
+        # Get total size (handle NULL file_size_bytes with coalesce)
+        total_size_bytes = (
+            db.session.query(
+                func.coalesce(func.sum(SearchDocument.file_size_bytes), 0)
+            ).scalar()
+            or 0
+        )
+
+        # Get per-user breakdown
+        users_stats = (
+            db.session.query(
+                User.id,
+                User.name,
+                User.email,
+                func.count(SearchDocument.id).label("document_count"),
+                func.coalesce(func.sum(SearchDocument.file_size_bytes), 0).label(
+                    "total_size_bytes"
+                ),
+            )
+            .outerjoin(SearchDocument, User.id == SearchDocument.owner_id)
+            .group_by(User.id)
+            .all()
+        )
+
+        users = [
+            {
+                "user_id": user_id,
+                "user_name": user_name,
+                "user_email": user_email,
+                "document_count": document_count,
+                "total_size_bytes": total_size_bytes,
+            }
+            for user_id, user_name, user_email, document_count, total_size_bytes in users_stats
+        ]
+
+        return {
+            "total_documents": total_documents,
+            "total_size_bytes": total_size_bytes,
+            "users": users,
+        }
+
+    @staticmethod
+    def get_disk_usage() -> dict:
+        """Get server disk usage.
+
+        Returns:
+            dict with:
+            - total_bytes: int (total disk space)
+            - used_bytes: int (used disk space)
+            - free_bytes: int (free disk space)
+            - percentage_used: float
+        """
+        upload_folder = current_app.config.get("UPLOAD_FOLDER", "storage/uploads")
+        usage = shutil.disk_usage(upload_folder)
+
+        percentage_used = (usage.used / usage.total * 100) if usage.total > 0 else 0.0
+
+        return {
+            "total_bytes": usage.total,
+            "used_bytes": usage.used,
+            "free_bytes": usage.free,
+            "percentage_used": round(percentage_used, 2),
+        }

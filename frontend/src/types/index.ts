@@ -201,3 +201,25 @@ export interface ResetSystemPromptResponse {
   message: string;
   default_prompt: string;
 }
+
+// Storage Management types (SPEC-STORAGE-001)
+export interface UserStorageUsage {
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  document_count: number;
+  total_size_bytes: number;
+}
+
+export interface StorageStatsResponse {
+  total_documents: number;
+  total_size_bytes: number;
+  users: UserStorageUsage[];
+}
+
+export interface DiskUsageResponse {
+  total_bytes: number;
+  used_bytes: number;
+  free_bytes: number;
+  percentage_used: number;
+}

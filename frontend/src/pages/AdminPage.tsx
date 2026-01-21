@@ -4,9 +4,17 @@ import { Modal } from '@/components/common';
 import { UserFormDialog, PasswordResetDialog, SystemPromptEditor } from '@/components/admin';
 import { adminApi } from '@/api';
 import { useAuthStore } from '@/store';
-import type { UserWithDocuments, CreateUserRequest, UpdateUserRequest } from '@/types';
+import type { UserWithDocuments, CreateUserRequest, UpdateUserRequest, StorageStatsResponse, DiskUsageResponse } from '@/types';
 
-type AdminSection = 'users' | 'pending' | 'system-prompts';
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+type AdminSection = 'users' | 'pending' | 'system-prompts' | 'storage';
 
 export function AdminPage() {
   const navigate = useNavigate();
@@ -35,6 +43,10 @@ export function AdminPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [isApproving, setIsApproving] = useState<string | null>(null);
   const [isRejecting, setIsRejecting] = useState(false);
+
+  // Storage management state
+  const [storageStats, setStorageStats] = useState<StorageStatsResponse | null>(null);
+  const [diskUsage, setDiskUsage] = useState<DiskUsageResponse | null>(null);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -66,6 +78,24 @@ export function AdminPage() {
     fetchUsers();
     fetchPendingUsers();
   }, []);
+
+  useEffect(() => {
+    if (activeSection === 'storage') {
+      const fetchStorageData = async () => {
+        try {
+          const [stats, disk] = await Promise.all([
+            adminApi.getStorageStats(),
+            adminApi.getDiskUsage()
+          ]);
+          setStorageStats(stats);
+          setDiskUsage(disk);
+        } catch (err) {
+          console.error('Failed to fetch storage data:', err);
+        }
+      };
+      fetchStorageData();
+    }
+  }, [activeSection]);
 
   const handleApproveUser = async (userId: string) => {
     setIsApproving(userId);
@@ -298,6 +328,21 @@ export function AdminPage() {
                   activeSection === 'system-prompts' ? 'text-primary font-bold' : 'text-text-primary font-medium'
                 }`}>시스템 프롬프트</p>
               </button>
+              <button
+                onClick={() => setActiveSection('storage')}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                  activeSection === 'storage'
+                    ? 'bg-primary/10 text-primary'
+                    : 'hover:bg-background-light group'
+                }`}
+              >
+                <span className={`material-symbols-outlined text-[24px] ${
+                  activeSection === 'storage' ? 'text-primary' : 'text-text-secondary group-hover:text-text-primary'
+                }`}>storage</span>
+                <p className={`text-sm font-medium ${
+                  activeSection === 'storage' ? 'text-primary' : 'text-text-secondary group-hover:text-text-primary'
+                }`}>저장소 관리</p>
+              </button>
             </div>
           </div>
           <div className="flex flex-col gap-2 border-t border-[#e5e7eb] pt-4">
@@ -343,7 +388,7 @@ export function AdminPage() {
               </button>
               <span className="material-symbols-outlined text-text-secondary text-sm">chevron_right</span>
               <span className="text-text-primary text-sm font-medium leading-normal">
-                {activeSection === 'users' ? 'User Management' : activeSection === 'pending' ? '승인 대기' : 'System Prompts'}
+                {activeSection === 'users' ? 'User Management' : activeSection === 'pending' ? '승인 대기' : activeSection === 'system-prompts' ? 'System Prompts' : '저장소 관리'}
               </span>
             </div>
 
@@ -689,9 +734,85 @@ export function AdminPage() {
                   </div>
                 </div>
               </>
-            ) : (
+            ) : activeSection === 'system-prompts' ? (
               /* System Prompts Section */
               <SystemPromptEditor />
+            ) : (
+              /* Storage Management Section */
+              <div className="space-y-6">
+                <h2 className="text-xl font-bold text-text-primary">저장소 관리</h2>
+
+                {/* Disk Usage Card */}
+                {diskUsage && (
+                  <div className="bg-white rounded-xl border border-border-light p-6">
+                    <h3 className="text-lg font-semibold text-text-primary mb-4">서버 디스크 사용량</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-text-secondary">사용 중</span>
+                        <span className="font-medium">{formatBytes(diskUsage.used_bytes)} / {formatBytes(diskUsage.total_bytes)}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div
+                          className={`h-3 rounded-full ${
+                            diskUsage.percentage_used > 80 ? 'bg-red-500' :
+                            diskUsage.percentage_used > 50 ? 'bg-orange-500' : 'bg-green-500'
+                          }`}
+                          style={{ width: `${diskUsage.percentage_used}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-text-secondary">남은 용량</span>
+                        <span className="font-medium text-green-600">{formatBytes(diskUsage.free_bytes)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Document Storage Stats */}
+                {storageStats && (
+                  <div className="bg-white rounded-xl border border-border-light p-6">
+                    <h3 className="text-lg font-semibold text-text-primary mb-4">문서 저장소 현황</h3>
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="bg-background-light rounded-lg p-4">
+                        <p className="text-sm text-text-secondary">총 문서 수</p>
+                        <p className="text-2xl font-bold text-text-primary">{storageStats.total_documents}</p>
+                      </div>
+                      <div className="bg-background-light rounded-lg p-4">
+                        <p className="text-sm text-text-secondary">총 사용량</p>
+                        <p className="text-2xl font-bold text-text-primary">{formatBytes(storageStats.total_size_bytes)}</p>
+                      </div>
+                    </div>
+
+                    {/* Per-user storage table */}
+                    <h4 className="font-medium text-text-primary mb-3">사용자별 사용량</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border-light">
+                            <th className="text-left py-3 px-4 text-sm font-medium text-text-secondary">사용자</th>
+                            <th className="text-right py-3 px-4 text-sm font-medium text-text-secondary">문서 수</th>
+                            <th className="text-right py-3 px-4 text-sm font-medium text-text-secondary">사용량</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {storageStats.users
+                            .sort((a, b) => b.total_size_bytes - a.total_size_bytes)
+                            .map((user) => (
+                              <tr key={user.user_id} className="border-b border-border-light hover:bg-background-light">
+                                <td className="py-3 px-4">
+                                  <p className="text-sm font-medium text-text-primary">{user.user_name}</p>
+                                  <p className="text-xs text-text-secondary">{user.user_email}</p>
+                                </td>
+                                <td className="text-right py-3 px-4 text-sm text-text-primary">{user.document_count}</td>
+                                <td className="text-right py-3 px-4 text-sm font-medium text-text-primary">{formatBytes(user.total_size_bytes)}</td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </main>

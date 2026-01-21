@@ -266,3 +266,36 @@ def get_user_documents(user_id: str):
         return jsonify({"error": error}), 404
 
     return jsonify({"documents": documents}), 200
+
+
+@admin_bp.route("/storage/stats", methods=["GET"])
+@jwt_required
+@admin_required
+def get_storage_stats():
+    """Get storage statistics with per-user breakdown.
+
+    Returns:
+        200 OK with storage statistics:
+        - total_documents: int
+        - total_size_bytes: int
+        - users: list of per-user storage info
+    """
+    stats = AdminService.get_storage_stats()
+    return jsonify(stats), 200
+
+
+@admin_bp.route("/storage/disk", methods=["GET"])
+@jwt_required
+@admin_required
+def get_disk_usage():
+    """Get server disk usage information.
+
+    Returns:
+        200 OK with disk usage:
+        - total_bytes: int (total disk space)
+        - used_bytes: int (used disk space)
+        - free_bytes: int (free disk space)
+        - percentage_used: float
+    """
+    usage = AdminService.get_disk_usage()
+    return jsonify(usage), 200

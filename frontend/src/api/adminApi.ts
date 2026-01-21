@@ -1,5 +1,5 @@
 import client from './client';
-import type { User, UserWithDocuments, CreateUserRequest, UpdateUserRequest, Document } from '@/types';
+import type { User, UserWithDocuments, CreateUserRequest, UpdateUserRequest, Document, StorageStatsResponse, DiskUsageResponse } from '@/types';
 
 export interface PendingUsersResponse {
   users: UserWithDocuments[];
@@ -48,5 +48,15 @@ export const adminApi = {
   getUserDocuments: async (userId: string): Promise<Document[]> => {
     const response = await client.get<{ documents: Document[] }>(`/admin/users/${userId}/documents`);
     return response.data.documents;
+  },
+
+  getStorageStats: async (): Promise<StorageStatsResponse> => {
+    const response = await client.get<StorageStatsResponse>('/admin/storage/stats');
+    return response.data;
+  },
+
+  getDiskUsage: async (): Promise<DiskUsageResponse> => {
+    const response = await client.get<DiskUsageResponse>('/admin/storage/disk');
+    return response.data;
   },
 };
