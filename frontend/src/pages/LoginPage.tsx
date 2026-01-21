@@ -53,7 +53,7 @@ export function LoginPage() {
             className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-[#f0f2f4] hover:bg-[#e4e7eb] text-text-primary text-sm font-bold leading-normal tracking-[0.015em] transition-colors"
             href="mailto:emong111@naver.com"
           >
-            <span className="truncate">Contact Support</span>
+            <span className="truncate">문의하기</span>
           </a>
         </div>
       </header>
@@ -63,9 +63,9 @@ export function LoginPage() {
         <div className="w-full max-w-[440px] flex flex-col">
           {/* Headline Section */}
           <div className="text-center mb-10">
-            <h1 className="text-text-primary tracking-tight text-[32px] font-bold leading-tight mb-3">Welcome back</h1>
+            <h1 className="text-text-primary tracking-tight text-[32px] font-bold leading-tight mb-3">다시 오신 것을 환영합니다</h1>
             <p className="text-text-secondary text-base font-normal leading-normal">
-              Log in to access your documents and start searching.
+              문서에 접근하고 검색을 시작하려면 로그인하세요.
             </p>
           </div>
 
@@ -81,7 +81,7 @@ export function LoginPage() {
             {/* Email Field */}
             <div className="flex flex-col gap-2">
               <label className="text-text-primary text-sm font-medium leading-normal" htmlFor="email">
-                Email address
+                이메일 주소
               </label>
               <input
                 className="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-primary focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#dbe0e6] bg-white focus:border-primary h-12 placeholder:text-[#9ca3af] p-[15px] text-base font-normal leading-normal transition-colors"
@@ -100,7 +100,7 @@ export function LoginPage() {
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <label className="text-text-primary text-sm font-medium leading-normal" htmlFor="password">
-                  Password
+                  비밀번호
                 </label>
               </div>
               <div className="relative flex w-full items-center rounded-lg">
@@ -108,7 +108,7 @@ export function LoginPage() {
                   className="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-primary focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#dbe0e6] bg-white focus:border-primary h-12 placeholder:text-[#9ca3af] p-[15px] pr-12 text-base font-normal leading-normal transition-colors"
                   id="password"
                   name="password"
-                  placeholder="Enter your password"
+                  placeholder="비밀번호를 입력하세요"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -143,7 +143,7 @@ export function LoginPage() {
               {isLoading ? (
                 <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
               ) : (
-                <span className="truncate">Log In</span>
+                <span className="truncate">로그인</span>
               )}
             </button>
           </form>
@@ -151,7 +151,7 @@ export function LoginPage() {
           {/* Sign Up Link - Hidden since admin creates users */}
           <div className="mt-8 text-center">
             <p className="text-text-secondary text-sm">
-              Contact your administrator if you need an account.
+              계정이 필요하시면 관리자에게 문의하세요.
             </p>
           </div>
         </div>

@@ -219,10 +219,10 @@ export function DocumentsPage() {
       failed: 'bg-red-50 text-red-700 border-red-200',
     };
     const labels: Record<ExtractionStatus, string> = {
-      completed: 'Completed',
-      processing: 'Processing',
-      pending: 'Pending',
-      failed: 'Failed',
+      completed: '완료',
+      processing: '처리 중',
+      pending: '대기 중',
+      failed: '실패',
     };
     return (
       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${styles[status]}`}>
@@ -295,7 +295,7 @@ export function DocumentsPage() {
             <button
               onClick={handleLogout}
               className="flex items-center justify-center rounded-full size-10 hover:bg-[#f0f2f4] transition-colors text-text-primary"
-              title="Logout"
+              title="로그아웃"
             >
               <span className="material-symbols-outlined">logout</span>
             </button>
@@ -311,8 +311,8 @@ export function DocumentsPage() {
         {/* Page Heading */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="flex flex-col gap-1">
-            <h1 className="text-text-primary text-3xl font-black leading-tight tracking-[-0.033em]">My Documents</h1>
-            <p className="text-text-secondary text-base font-normal">Manage, upload and organize your PDF files.</p>
+            <h1 className="text-text-primary text-3xl font-black leading-tight tracking-[-0.033em]">내 문서</h1>
+            <p className="text-text-secondary text-base font-normal">PDF 파일을 관리하고 업로드하세요.</p>
           </div>
           <button
             type="button"
@@ -333,11 +333,11 @@ export function DocumentsPage() {
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="">All Statuses</option>
-                <option value="completed">Completed</option>
-                <option value="processing">Processing</option>
-                <option value="pending">Pending</option>
-                <option value="failed">Failed</option>
+                <option value="">모든 상태</option>
+                <option value="completed">완료</option>
+                <option value="processing">처리 중</option>
+                <option value="pending">대기 중</option>
+                <option value="failed">실패</option>
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                 <span className="material-symbols-outlined text-text-secondary">expand_more</span>
@@ -349,7 +349,7 @@ export function DocumentsPage() {
             className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#dbe0e6] rounded-lg text-text-primary font-medium text-sm hover:bg-[#f9fafb] transition-colors shadow-sm"
           >
             <span className="material-symbols-outlined text-[20px]">refresh</span>
-            <span>Refresh</span>
+            <span>새로고침</span>
           </button>
         </div>
 
@@ -393,16 +393,16 @@ export function DocumentsPage() {
               <thead>
                 <tr className="bg-[#f9fafb] border-b border-[#dbe0e6]">
                   <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[22%]">
-                    File Name
+                    파일명
                   </th>
                   <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[6%]">
                     Year
                   </th>
                   <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[12%]">
-                    First Author
+                    제1저자
                   </th>
                   <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[12%]">
-                    Co-Authors
+                    공동저자
                   </th>
                   <th className="px-4 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[14%]">
                     Journal
@@ -425,20 +425,20 @@ export function DocumentsPage() {
                       <span className="material-symbols-outlined text-4xl text-text-secondary animate-spin">
                         progress_activity
                       </span>
-                      <p className="mt-2 text-text-secondary">Loading documents...</p>
+                      <p className="mt-2 text-text-secondary">문서 불러오는 중...</p>
                     </td>
                   </tr>
                 ) : filteredDocuments.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
                       <span className="material-symbols-outlined text-4xl text-text-secondary">folder_off</span>
-                      <p className="mt-2 text-text-secondary">No documents found</p>
+                      <p className="mt-2 text-text-secondary">문서가 없습니다</p>
                     </td>
                   </tr>
                 ) : (
                   filteredDocuments.map((doc) => (
                     <tr key={doc.id} className="hover:bg-[#f9fafb] transition-colors group">
-                      {/* File Name */}
+                      {/* 파일명 */}
                       <td className="px-4 py-4">
                         <button
                           onClick={() => handleViewDocument(doc)}
@@ -465,7 +465,7 @@ export function DocumentsPage() {
                           {getMetadataStatusIndicator(doc.metadata_status)}
                         </div>
                       </td>
-                      {/* First Author (B) */}
+                      {/* 제1저자 (B) */}
                       <td className="px-4 py-4 text-sm text-text-primary">
                         <AuthorDisplay
                           firstAuthor={doc.first_author}
@@ -473,7 +473,7 @@ export function DocumentsPage() {
                           type="first"
                         />
                       </td>
-                      {/* Co-Authors (C) */}
+                      {/* 공동저자 (C) */}
                       <td className="px-4 py-4 text-sm text-text-primary">
                         <AuthorDisplay
                           firstAuthor={doc.first_author}
@@ -501,7 +501,7 @@ export function DocumentsPage() {
                           <button
                             onClick={() => handleViewDocument(doc)}
                             className="p-1.5 rounded-lg text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors"
-                            title="View"
+                            title="보기"
                             disabled={doc.extraction_status !== 'completed'}
                           >
                             <span className="material-symbols-outlined text-[18px]">visibility</span>
@@ -509,7 +509,7 @@ export function DocumentsPage() {
                           <button
                             onClick={() => setDeleteTarget(doc)}
                             className="p-1.5 rounded-lg text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
-                            title="Delete"
+                            title="삭제"
                           >
                             <span className="material-symbols-outlined text-[18px]">delete</span>
                           </button>
@@ -526,9 +526,7 @@ export function DocumentsPage() {
           {pages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-[#dbe0e6] bg-[#f9fafb]">
               <p className="text-sm text-text-secondary">
-                Showing <span className="font-medium">{(page - 1) * 20 + 1}</span> to{' '}
-                <span className="font-medium">{Math.min(page * 20, total)}</span> of{' '}
-                <span className="font-medium">{total}</span> documents
+                총 <span className="font-medium">{total}</span>개 중 <span className="font-medium">{(page - 1) * 20 + 1}</span>-<span className="font-medium">{Math.min(page * 20, total)}</span>개 표시
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -659,10 +657,10 @@ export function DocumentsPage() {
       </Modal>
 
       {/* Delete Confirmation Dialog */}
-      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Document" size="sm">
+      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="문서 삭제" size="sm">
         <div className="space-y-4">
           <p className="text-text-secondary">
-            Are you sure you want to delete this document?
+            이 문서를 삭제하시겠습니까?
             <br />
             <span className="font-medium text-text-primary">{deleteTarget?.original_filename}</span>
           </p>
@@ -679,7 +677,7 @@ export function DocumentsPage() {
               className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium text-sm hover:bg-red-600 transition-colors disabled:opacity-50"
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? '삭제 중...' : '삭제'}
             </button>
           </div>
         </div>
