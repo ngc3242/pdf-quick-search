@@ -5,8 +5,9 @@ from typing import List, Optional, Tuple
 from sqlalchemy import func
 
 from app.models import db
-from app.models.user import User
 from app.models.document import SearchDocument
+from app.models.user import User
+from app.utils.storage import delete_file
 
 
 class AdminService:
@@ -22,8 +23,7 @@ class AdminService:
         # Query users with document count
         users_with_counts = (
             db.session.query(
-                User,
-                func.count(SearchDocument.id).label("document_count")
+                User, func.count(SearchDocument.id).label("document_count")
             )
             .outerjoin(SearchDocument, User.id == SearchDocument.owner_id)
             .group_by(User.id)
@@ -53,7 +53,7 @@ class AdminService:
                 "name": user.name,
                 "phone": user.phone,
                 "approval_status": user.approval_status,
-                "created_at": user.created_at.isoformat() if user.created_at else None
+                "created_at": user.created_at.isoformat() if user.created_at else None,
             }
             for user in users
         ]
@@ -61,9 +61,7 @@ class AdminService:
 
     @staticmethod
     def approve_user(
-        user_id: str,
-        admin_user: User,
-        role: str = "user"
+        user_id: str, admin_user: User, role: str = "user"
     ) -> Tuple[Optional[User], Optional[str]]:
         """Approve a pending user.
 
@@ -93,10 +91,7 @@ class AdminService:
         return user, None
 
     @staticmethod
-    def reject_user(
-        user_id: str,
-        reason: str
-    ) -> Tuple[Optional[User], Optional[str]]:
+    def reject_user(user_id: str, reason: str) -> Tuple[Optional[User], Optional[str]]:
         """Reject a pending user.
 
         Args:
@@ -131,7 +126,7 @@ class AdminService:
         name: str,
         password: str,
         phone: Optional[str] = None,
-        role: str = "user"
+        role: str = "user",
     ) -> Tuple[Optional[User], Optional[str]]:
         """Create a new user.
 
@@ -150,23 +145,14 @@ class AdminService:
         if existing:
             return None, "Email already registered"
 
-        user = User(
-            email=email,
-            name=name,
-            password=password,
-            phone=phone,
-            role=role
-        )
+        user = User(email=email, name=name, password=password, phone=phone, role=role)
         db.session.add(user)
         db.session.commit()
 
         return user, None
 
     @staticmethod
-    def update_user(
-        user_id: str,
-        data: dict
-    ) -> Tuple[Optional[User], Optional[str]]:
+    def update_user(user_id: str, data: dict) -> Tuple[Optional[User], Optional[str]]:
         """Update user information.
 
         Allowed fields: name, phone, role, is_active
@@ -192,10 +178,7 @@ class AdminService:
         return user, None
 
     @staticmethod
-    def reset_password(
-        user_id: str,
-        new_password: str
-    ) -> Tuple[bool, Optional[str]]:
+    def reset_password(user_id: str, new_password: str) -> Tuple[bool, Optional[str]]:
         """Reset a user's password.
 
         Args:
@@ -216,7 +199,7 @@ class AdminService:
 
     @staticmethod
     def delete_user(user_id: str) -> Tuple[bool, Optional[str]]:
-        """Delete a user and cascade delete their documents.
+        """Delete a user and cascade delete their documents including files.
 
         Args:
             user_id: User ID to delete
@@ -227,6 +210,12 @@ class AdminService:
         user = User.query.filter_by(id=user_id).first()
         if not user:
             return False, "User not found"
+
+        # Delete actual PDF files from storage before deleting DB records
+        documents = SearchDocument.query.filter_by(owner_id=user_id).all()
+        for doc in documents:
+            if doc.file_path:
+                delete_file(doc.file_path)
 
         db.session.delete(user)
         db.session.commit()
