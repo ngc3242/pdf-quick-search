@@ -80,9 +80,8 @@ yarn-error.log*
 instance/
 .webassets-cache
 
-# Migrations (keep structure, ignore auto-generated)
-backend/migrations/versions/*
-!backend/migrations/versions/.gitkeep
+# Migrations (track migration files)
+!backend/migrations/versions/*.py
 # Python Cache & Database
 .moai/scripts/sync-*.sh
 .claude/settings.local.json
