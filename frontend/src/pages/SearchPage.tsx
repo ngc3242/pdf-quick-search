@@ -220,7 +220,7 @@ export function SearchPage() {
             <button
               onClick={handleLogout}
               className="flex items-center justify-center rounded-full size-10 hover:bg-[#f0f2f4] transition-colors text-text-primary"
-              title="Logout"
+              title="로그아웃"
             >
               <span className="material-symbols-outlined">logout</span>
             </button>

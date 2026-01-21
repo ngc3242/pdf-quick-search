@@ -182,7 +182,7 @@ export function AdminPage() {
               <div className="size-10 rounded-full bg-primary flex items-center justify-center text-white">
                 <span className="material-symbols-outlined">picture_as_pdf</span>
               </div>
-              <h1 className="text-text-primary text-xl font-bold leading-normal tracking-tight">PDF Admin</h1>
+              <h1 className="text-text-primary text-xl font-bold leading-normal tracking-tight">PDF 관리자</h1>
             </div>
             <div className="flex flex-col gap-2 mt-4">
               <button
@@ -192,7 +192,7 @@ export function AdminPage() {
                 <span className="material-symbols-outlined text-text-secondary group-hover:text-primary text-[24px]">
                   description
                 </span>
-                <p className="text-text-primary text-sm font-medium leading-normal">Documents</p>
+                <p className="text-text-primary text-sm font-medium leading-normal">문서 관리</p>
               </button>
               <button
                 onClick={() => setActiveSection('users')}
@@ -212,7 +212,7 @@ export function AdminPage() {
                 </span>
                 <p className={`text-sm leading-normal ${
                   activeSection === 'users' ? 'text-primary font-bold' : 'text-text-primary font-medium'
-                }`}>User Management</p>
+                }`}>사용자 관리</p>
               </button>
               <button
                 onClick={() => setActiveSection('pending')}
@@ -259,7 +259,7 @@ export function AdminPage() {
                 </span>
                 <p className={`text-sm leading-normal ${
                   activeSection === 'system-prompts' ? 'text-primary font-bold' : 'text-text-primary font-medium'
-                }`}>System Prompts</p>
+                }`}>시스템 프롬프트</p>
               </button>
             </div>
           </div>
@@ -283,7 +283,7 @@ export function AdminPage() {
         <div className="lg:hidden flex items-center justify-between p-4 border-b border-[#e5e7eb] bg-white">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-text-primary">menu</span>
-            <h1 className="text-text-primary text-lg font-bold">PDF Admin</h1>
+            <h1 className="text-text-primary text-lg font-bold">PDF 관리자</h1>
           </div>
           <button
             onClick={handleLogout}
@@ -320,7 +320,7 @@ export function AdminPage() {
                       User Management
                     </h2>
                     <p className="text-text-secondary text-base font-normal">
-                      Manage accounts, roles, and view document statistics.
+                      계정, 역할을 관리하고 문서 통계를 확인하세요.
                     </p>
                   </div>
                   <button
@@ -328,7 +328,7 @@ export function AdminPage() {
                     className="flex items-center justify-center gap-2 bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-all focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                   >
                     <span className="material-symbols-outlined text-[20px]">add</span>
-                    <span>Create New User</span>
+                    <span>새 사용자 생성</span>
                   </button>
                 </div>
 
@@ -347,7 +347,7 @@ export function AdminPage() {
                   <span className="material-symbols-outlined text-text-secondary">search</span>
                   <input
                     className="w-full bg-transparent text-sm font-normal text-text-primary placeholder-text-secondary focus:outline-none"
-                    placeholder="Search users by name, email or phone..."
+                    placeholder="이름, 이메일 또는 전화번호로 검색..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -361,9 +361,9 @@ export function AdminPage() {
                     onChange={(e) => setRoleFilter(e.target.value)}
                     className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg border border-[#e5e7eb] bg-white px-4 hover:bg-[#f9fafb] transition-colors text-text-primary text-sm font-medium cursor-pointer appearance-none pr-8"
                   >
-                    <option value="">Role: All</option>
-                    <option value="admin">Admin</option>
-                    <option value="user">User</option>
+                    <option value="">역할: 전체</option>
+                    <option value="admin">관리자</option>
+                    <option value="user">사용자</option>
                   </select>
                 </div>
                 <div className="relative group">
@@ -372,9 +372,9 @@ export function AdminPage() {
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg border border-[#e5e7eb] bg-white px-4 hover:bg-[#f9fafb] transition-colors text-text-primary text-sm font-medium cursor-pointer appearance-none pr-8"
                   >
-                    <option value="">Status: All</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="">상태: 전체</option>
+                    <option value="active">활성</option>
+                    <option value="inactive">비활성</option>
                   </select>
                 </div>
                 <button
@@ -384,7 +384,7 @@ export function AdminPage() {
                     setStatusFilter('');
                   }}
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] transition-colors text-text-secondary"
-                  title="Reset Filters"
+                  title="필터 초기화"
                 >
                   <span className="material-symbols-outlined">filter_alt_off</span>
                 </button>
@@ -398,22 +398,22 @@ export function AdminPage() {
                   <thead className="bg-[#f9fafb] border-b border-[#e5e7eb]">
                     <tr>
                       <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[30%]">
-                        User
+                        사용자
                       </th>
                       <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                        Role
+                        역할
                       </th>
                       <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                        Status
+                        상태
                       </th>
                       <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider text-center">
-                        Docs
+                        문서
                       </th>
                       <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                        Phone
+                        전화번호
                       </th>
                       <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider text-right">
-                        Actions
+                        작업
                       </th>
                     </tr>
                   </thead>
@@ -424,14 +424,14 @@ export function AdminPage() {
                           <span className="material-symbols-outlined text-4xl text-text-secondary animate-spin">
                             progress_activity
                           </span>
-                          <p className="mt-2 text-text-secondary">Loading users...</p>
+                          <p className="mt-2 text-text-secondary">사용자 불러오는 중...</p>
                         </td>
                       </tr>
                     ) : filteredUsers.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="px-6 py-12 text-center">
                           <span className="material-symbols-outlined text-4xl text-text-secondary">person_off</span>
-                          <p className="mt-2 text-text-secondary">No users found</p>
+                          <p className="mt-2 text-text-secondary">사용자가 없습니다</p>
                         </td>
                       </tr>
                     ) : (
@@ -454,7 +454,7 @@ export function AdminPage() {
                               <div
                                 className={`w-2 h-2 rounded-full ${u.is_active ? 'bg-green-500' : 'bg-red-500'}`}
                               ></div>
-                              <span className="text-sm text-text-primary">{u.is_active ? 'Active' : 'Inactive'}</span>
+                              <span className="text-sm text-text-primary">{u.is_active ? '활성' : '비활성'}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -468,21 +468,21 @@ export function AdminPage() {
                               <button
                                 onClick={() => setEditUser(u)}
                                 className="p-1.5 text-text-secondary hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
-                                title="Edit User"
+                                title="사용자 편집"
                               >
                                 <span className="material-symbols-outlined text-[20px]">edit</span>
                               </button>
                               <button
                                 onClick={() => setPasswordUser(u)}
                                 className="p-1.5 text-text-secondary hover:text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
-                                title="Reset Password"
+                                title="비밀번호 재설정"
                               >
                                 <span className="material-symbols-outlined text-[20px]">lock_reset</span>
                               </button>
                               <button
                                 onClick={() => setDeleteUser(u)}
                                 className="p-1.5 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                title="Delete User"
+                                title="사용자 삭제"
                               >
                                 <span className="material-symbols-outlined text-[20px]">delete</span>
                               </button>
@@ -497,8 +497,7 @@ export function AdminPage() {
               {/* Pagination */}
               <div className="px-6 py-4 border-t border-[#e5e7eb] flex items-center justify-between bg-white">
                 <p className="text-sm text-text-secondary">
-                  Showing <span className="font-medium text-text-primary">{filteredUsers.length}</span> of{' '}
-                  <span className="font-medium text-text-primary">{users.length}</span> users
+                  총 <span className="font-medium text-text-primary">{users.length}</span>명 중 <span className="font-medium text-text-primary">{filteredUsers.length}</span>명 표시
                 </p>
               </div>
             </div>
@@ -653,10 +652,10 @@ export function AdminPage() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <Modal isOpen={!!deleteUser} onClose={() => setDeleteUser(null)} title="Delete User" size="sm">
+      <Modal isOpen={!!deleteUser} onClose={() => setDeleteUser(null)} title="사용자 삭제" size="sm">
         <div className="space-y-4">
           <p className="text-text-secondary">
-            Are you sure you want to delete this user? All their documents will also be deleted.
+            이 사용자를 삭제하시겠습니까? 해당 사용자의 모든 문서도 함께 삭제됩니다.
             <br />
             <span className="font-medium text-text-primary">
               {deleteUser?.name} ({deleteUser?.email})
@@ -678,10 +677,10 @@ export function AdminPage() {
               {isDeleting ? (
                 <span className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-                  Deleting...
+                  삭제 중...
                 </span>
               ) : (
-                'Delete'
+                '삭제'
               )}
             </button>
           </div>

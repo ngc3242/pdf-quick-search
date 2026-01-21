@@ -58,7 +58,7 @@ export function SystemPromptEditor() {
   };
 
   const handleReset = async (provider: TypoProvider) => {
-    if (window.confirm('Are you sure you want to reset this prompt to the default?')) {
+    if (window.confirm('이 프롬프트를 기본값으로 재설정하시겠습니까?')) {
       await resetPrompt(provider);
     }
   };
@@ -69,7 +69,7 @@ export function SystemPromptEditor() {
         <span className="material-symbols-outlined text-4xl text-text-secondary animate-spin">
           progress_activity
         </span>
-        <p className="ml-3 text-text-secondary">Loading system prompts...</p>
+        <p className="ml-3 text-text-secondary">시스템 프롬프트 불러오는 중...</p>
       </div>
     );
   }
@@ -78,10 +78,10 @@ export function SystemPromptEditor() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h3 className="text-xl font-bold text-text-primary">System Prompts</h3>
+        <h3 className="text-xl font-bold text-text-primary">시스템 프롬프트</h3>
         <p className="text-sm text-text-secondary">
-          Customize the system prompts used by AI providers for typo checking.
-          Changes will take effect immediately for new checks.
+          맞춤법 검사에 사용되는 AI 프롬프트를 사용자 지정하세요.
+          변경 사항은 새로운 검사에 즉시 적용됩니다.
         </p>
       </div>
 
@@ -128,7 +128,7 @@ export function SystemPromptEditor() {
                     <button
                       onClick={() => handleEdit(promptConfig.provider)}
                       className="p-1.5 text-text-secondary hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
-                      title="Edit Prompt"
+                      title="프롬프트 편집"
                     >
                       <span className="material-symbols-outlined text-[20px]">edit</span>
                     </button>
@@ -137,7 +137,7 @@ export function SystemPromptEditor() {
                         onClick={() => handleReset(promptConfig.provider)}
                         disabled={isResetting}
                         className="p-1.5 text-text-secondary hover:text-orange-600 hover:bg-orange-50 rounded-md transition-colors disabled:opacity-50"
-                        title="Reset to Default"
+                        title="기본값으로 재설정"
                       >
                         <span className="material-symbols-outlined text-[20px]">restart_alt</span>
                       </button>
@@ -156,7 +156,7 @@ export function SystemPromptEditor() {
                     value={editedPrompt}
                     onChange={(e) => setEditedPrompt(e.target.value)}
                     className="w-full h-64 px-4 py-3 text-sm font-mono text-text-primary bg-[#f9fafb] border border-[#e5e7eb] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary resize-none"
-                    placeholder="Enter the system prompt..."
+                    placeholder="시스템 프롬프트를 입력하세요..."
                   />
                   <div className="flex items-center justify-end gap-3">
                     <button
@@ -164,7 +164,7 @@ export function SystemPromptEditor() {
                       disabled={isSaving}
                       className="px-4 py-2 text-sm font-medium text-text-primary border border-[#e5e7eb] rounded-lg hover:bg-[#f9fafb] transition-colors disabled:opacity-50"
                     >
-                      Cancel
+                      취소
                     </button>
                     <button
                       onClick={handleSave}
@@ -176,12 +176,12 @@ export function SystemPromptEditor() {
                           <span className="material-symbols-outlined text-[18px] animate-spin">
                             progress_activity
                           </span>
-                          Saving...
+                          저장 중...
                         </>
                       ) : (
                         <>
                           <span className="material-symbols-outlined text-[18px]">save</span>
-                          Save Changes
+                          변경 사항 저장
                         </>
                       )}
                     </button>
@@ -195,7 +195,7 @@ export function SystemPromptEditor() {
                   </pre>
                   {promptConfig.updated_at && (
                     <p className="text-xs text-text-secondary">
-                      Last updated: {new Date(promptConfig.updated_at).toLocaleString()}
+                      마지막 수정: {new Date(promptConfig.updated_at).toLocaleString()}
                     </p>
                   )}
                 </div>
@@ -211,7 +211,7 @@ export function SystemPromptEditor() {
           <span className="material-symbols-outlined text-4xl text-text-secondary">
             description
           </span>
-          <p className="mt-2 text-text-secondary">No system prompts configured.</p>
+          <p className="mt-2 text-text-secondary">설정된 시스템 프롬프트가 없습니다.</p>
         </div>
       )}
     </div>
