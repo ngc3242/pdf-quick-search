@@ -18,7 +18,7 @@ export const adminApi = {
   },
 
   approveUser: async (userId: string): Promise<{ message: string; user: User }> => {
-    const response = await client.post<{ message: string; user: User }>(`/admin/users/${userId}/approve`);
+    const response = await client.post<{ message: string; user: User }>(`/admin/users/${userId}/approve`, {});
     return response.data;
   },
 
