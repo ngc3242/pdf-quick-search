@@ -28,6 +28,7 @@ class TestTypoCheckerHistoryService:
             email=self.test_user_email,
             name="History Test User",
             password=self.test_user_password,
+            approval_status="approved"
         )
         db.session.add(user)
         db.session.commit()
@@ -62,10 +63,12 @@ class TestTypoCheckerHistoryService:
         with app.app_context():
             # Create two users
             user1 = User(
-                email="user1_history@example.com", name="User 1", password="password123"
+                email="user1_history@example.com", name="User 1", password="password123",
+                approval_status="approved"
             )
             user2 = User(
-                email="user2_history@example.com", name="User 2", password="password123"
+                email="user2_history@example.com", name="User 2", password="password123",
+                approval_status="approved"
             )
             db.session.add(user1)
             db.session.add(user2)
@@ -197,11 +200,13 @@ class TestTypoCheckerHistoryService:
                 email="owner_history@example.com",
                 name="Owner User",
                 password="password123",
+                approval_status="approved"
             )
             user2 = User(
                 email="other_history@example.com",
                 name="Other User",
                 password="password123",
+                approval_status="approved"
             )
             db.session.add(user1)
             db.session.add(user2)
@@ -247,6 +252,7 @@ class TestTypoCheckerHistoryEndpoint:
             email=self.test_user_email,
             name="History Endpoint Test User",
             password=self.test_user_password,
+            approval_status="approved"
         )
         db.session.add(user)
         db.session.commit()
@@ -346,10 +352,12 @@ class TestTypoCheckerHistoryEndpoint:
         with app.app_context():
             # Create two users
             user1 = User(
-                email="history_user1@example.com", name="User 1", password="password123"
+                email="history_user1@example.com", name="User 1", password="password123",
+                approval_status="approved"
             )
             user2 = User(
-                email="history_user2@example.com", name="User 2", password="password123"
+                email="history_user2@example.com", name="User 2", password="password123",
+                approval_status="approved"
             )
             db.session.add(user1)
             db.session.add(user2)
@@ -434,6 +442,7 @@ class TestTypoCheckerGetResultEndpoint:
             email=self.test_user_email,
             name="Get Result Test User",
             password=self.test_user_password,
+            approval_status="approved"
         )
         db.session.add(user)
         db.session.commit()
@@ -483,7 +492,8 @@ class TestTypoCheckerGetResultEndpoint:
         with app.app_context():
             # Create owner
             owner = User(
-                email="get_owner@example.com", name="Owner", password="password123"
+                email="get_owner@example.com", name="Owner", password="password123",
+                approval_status="approved"
             )
             db.session.add(owner)
             db.session.commit()
@@ -504,6 +514,7 @@ class TestTypoCheckerGetResultEndpoint:
                 email="get_other@example.com",
                 name="Other User",
                 password="password123",
+                approval_status="approved"
             )
             db.session.add(other_user)
             db.session.commit()
@@ -531,6 +542,7 @@ class TestTypoCheckerDeleteEndpoint:
             email=self.test_user_email,
             name="Delete Endpoint Test User",
             password=self.test_user_password,
+            approval_status="approved"
         )
         db.session.add(user)
         db.session.commit()
@@ -602,7 +614,8 @@ class TestTypoCheckerDeleteEndpoint:
         with app.app_context():
             # Create owner
             owner = User(
-                email="delete_owner@example.com", name="Owner", password="password123"
+                email="delete_owner@example.com", name="Owner", password="password123",
+                approval_status="approved"
             )
             db.session.add(owner)
             db.session.commit()
@@ -623,6 +636,7 @@ class TestTypoCheckerDeleteEndpoint:
                 email="delete_other@example.com",
                 name="Other User",
                 password="password123",
+                approval_status="approved"
             )
             db.session.add(other_user)
             db.session.commit()

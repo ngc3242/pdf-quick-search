@@ -6,7 +6,7 @@ import { adminApi } from '@/api';
 import { useAuthStore } from '@/store';
 import type { UserWithDocuments, CreateUserRequest, UpdateUserRequest } from '@/types';
 
-type AdminSection = 'users' | 'system-prompts';
+type AdminSection = 'users' | 'pending' | 'system-prompts';
 
 export function AdminPage() {
   const navigate = useNavigate();
@@ -26,6 +26,16 @@ export function AdminPage() {
   const [passwordUser, setPasswordUser] = useState<UserWithDocuments | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Pending users state
+  const [pendingUsers, setPendingUsers] = useState<UserWithDocuments[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [isPendingLoading, setIsPendingLoading] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserWithDocuments | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [isApproving, setIsApproving] = useState<string | null>(null);
+  const [isRejecting, setIsRejecting] = useState(false);
+
   const fetchUsers = async () => {
     setIsLoading(true);
     setError(null);
@@ -39,9 +49,61 @@ export function AdminPage() {
     }
   };
 
+  const fetchPendingUsers = async () => {
+    setIsPendingLoading(true);
+    try {
+      const data = await adminApi.getPendingUsers();
+      setPendingUsers(data.users);
+      setPendingCount(data.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load pending users');
+    } finally {
+      setIsPendingLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchPendingUsers();
   }, []);
+
+  const handleApproveUser = async (userId: string) => {
+    setIsApproving(userId);
+    setError(null);
+    try {
+      await adminApi.approveUser(userId);
+      await fetchPendingUsers();
+      await fetchUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve user');
+    } finally {
+      setIsApproving(null);
+    }
+  };
+
+  const handleRejectUser = async () => {
+    if (!selectedUser || !rejectReason.trim()) return;
+
+    setIsRejecting(true);
+    setError(null);
+    try {
+      await adminApi.rejectUser(selectedUser.id, rejectReason.trim());
+      await fetchPendingUsers();
+      setRejectDialogOpen(false);
+      setSelectedUser(null);
+      setRejectReason('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reject user');
+    } finally {
+      setIsRejecting(false);
+    }
+  };
+
+  const openRejectDialog = (user: UserWithDocuments) => {
+    setSelectedUser(user);
+    setRejectReason('');
+    setRejectDialogOpen(true);
+  };
 
   const handleCreateUser = async (data: CreateUserRequest | UpdateUserRequest) => {
     await adminApi.createUser(data as CreateUserRequest);
@@ -153,6 +215,33 @@ export function AdminPage() {
                 }`}>User Management</p>
               </button>
               <button
+                onClick={() => setActiveSection('pending')}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                  activeSection === 'pending'
+                    ? 'bg-primary/10 text-primary'
+                    : 'hover:bg-background-light group'
+                }`}
+              >
+                <span
+                  className={`material-symbols-outlined text-[24px] ${
+                    activeSection === 'pending' ? '' : 'text-text-secondary group-hover:text-primary'
+                  }`}
+                  style={activeSection === 'pending' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                >
+                  pending_actions
+                </span>
+                <div className="flex items-center gap-2">
+                  <p className={`text-sm leading-normal ${
+                    activeSection === 'pending' ? 'text-primary font-bold' : 'text-text-primary font-medium'
+                  }`}>승인 대기</p>
+                  {pendingCount > 0 && (
+                    <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-orange-100 text-orange-700">
+                      {pendingCount}
+                    </span>
+                  )}
+                </div>
+              </button>
+              <button
                 onClick={() => setActiveSection('system-prompts')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                   activeSection === 'system-prompts'
@@ -217,7 +306,7 @@ export function AdminPage() {
               </button>
               <span className="material-symbols-outlined text-text-secondary text-sm">chevron_right</span>
               <span className="text-text-primary text-sm font-medium leading-normal">
-                {activeSection === 'users' ? 'User Management' : 'System Prompts'}
+                {activeSection === 'users' ? 'User Management' : activeSection === 'pending' ? '승인 대기' : 'System Prompts'}
               </span>
             </div>
 
@@ -414,6 +503,135 @@ export function AdminPage() {
               </div>
             </div>
               </>
+            ) : activeSection === 'pending' ? (
+              /* Pending Approvals Section */
+              <>
+                {/* Page Heading */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-text-primary text-3xl md:text-4xl font-black leading-tight tracking-tight">
+                      승인 대기
+                    </h2>
+                    <p className="text-text-secondary text-base font-normal">
+                      가입 승인 대기 중인 사용자를 관리합니다.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
+
+                {/* Pending Users Table */}
+                <div className="border border-[#e5e7eb] rounded-xl overflow-hidden shadow-sm bg-white">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="bg-[#f9fafb] border-b border-[#e5e7eb]">
+                        <tr>
+                          <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                            이름
+                          </th>
+                          <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                            이메일
+                          </th>
+                          <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                            전화번호
+                          </th>
+                          <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                            가입일
+                          </th>
+                          <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider text-right">
+                            작업
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#e5e7eb]">
+                        {isPendingLoading ? (
+                          <tr>
+                            <td colSpan={5} className="px-6 py-12 text-center">
+                              <span className="material-symbols-outlined text-4xl text-text-secondary animate-spin">
+                                progress_activity
+                              </span>
+                              <p className="mt-2 text-text-secondary">Loading...</p>
+                            </td>
+                          </tr>
+                        ) : pendingUsers.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="px-6 py-12 text-center">
+                              <span className="material-symbols-outlined text-4xl text-text-secondary">how_to_reg</span>
+                              <p className="mt-2 text-text-secondary">승인 대기 중인 사용자가 없습니다</p>
+                            </td>
+                          </tr>
+                        ) : (
+                          pendingUsers.map((u) => (
+                            <tr key={u.id} className="hover:bg-primary/5 transition-colors group">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-10 w-10 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold shrink-0">
+                                    {u.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <span className="text-sm font-semibold text-text-primary">{u.name}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="text-sm text-text-primary">{u.email}</span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="text-sm text-text-secondary">{u.phone || '-'}</span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="text-sm text-text-secondary">
+                                  {new Date(u.created_at).toLocaleDateString('ko-KR')}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => handleApproveUser(u.id)}
+                                    disabled={isApproving === u.id}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="승인"
+                                  >
+                                    {isApproving === u.id ? (
+                                      <>
+                                        <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                                        <span>처리중...</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span className="material-symbols-outlined text-[16px]">check</span>
+                                        <span>승인</span>
+                                      </>
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={() => openRejectDialog(u)}
+                                    disabled={isApproving === u.id}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="거부"
+                                  >
+                                    <span className="material-symbols-outlined text-[16px]">close</span>
+                                    <span>거부</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  {/* Footer */}
+                  <div className="px-6 py-4 border-t border-[#e5e7eb] flex items-center justify-between bg-white">
+                    <p className="text-sm text-text-secondary">
+                      총 <span className="font-medium text-text-primary">{pendingCount}</span>명의 승인 대기 사용자
+                    </p>
+                  </div>
+                </div>
+              </>
             ) : (
               /* System Prompts Section */
               <SystemPromptEditor />
@@ -472,6 +690,64 @@ export function AdminPage() {
 
       {/* Password Reset Dialog */}
       <PasswordResetDialog isOpen={!!passwordUser} onClose={() => setPasswordUser(null)} onSubmit={handleResetPassword} user={passwordUser} />
+
+      {/* Reject User Dialog */}
+      <Modal
+        isOpen={rejectDialogOpen}
+        onClose={() => {
+          setRejectDialogOpen(false);
+          setSelectedUser(null);
+          setRejectReason('');
+        }}
+        title="사용자 거부"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-text-secondary">
+            <span className="font-medium text-text-primary">{selectedUser?.name}</span> ({selectedUser?.email}) 사용자의 가입을 거부합니다.
+          </p>
+          <div>
+            <label htmlFor="rejectReason" className="block text-sm font-medium text-text-primary mb-2">
+              거부 사유를 입력해주세요:
+            </label>
+            <textarea
+              id="rejectReason"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="거부 사유를 입력하세요..."
+              rows={4}
+              className="w-full px-3 py-2 border border-[#e5e7eb] rounded-lg text-sm text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary resize-none"
+            />
+          </div>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => {
+                setRejectDialogOpen(false);
+                setSelectedUser(null);
+                setRejectReason('');
+              }}
+              className="px-4 py-2 rounded-lg border border-[#dbe0e6] text-text-primary font-medium text-sm hover:bg-[#f9fafb] transition-colors"
+              disabled={isRejecting}
+            >
+              취소
+            </button>
+            <button
+              onClick={handleRejectUser}
+              disabled={isRejecting || !rejectReason.trim()}
+              className="px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRejecting ? (
+                <span className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  처리중...
+                </span>
+              ) : (
+                '거부'
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

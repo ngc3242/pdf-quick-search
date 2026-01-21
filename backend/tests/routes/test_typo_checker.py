@@ -25,7 +25,8 @@ class TestTypoCheckerEndpoints:
         user = User(
             email=self.test_user_email,
             name="Typo Test User",
-            password=self.test_user_password
+            password=self.test_user_password,
+            approval_status="approved"
         )
         db.session.add(user)
         db.session.commit()
@@ -197,7 +198,8 @@ class TestProvidersEndpoint:
         user = User(
             email="providers_test@example.com",
             name="Providers Test User",
-            password="testpassword123"
+            password="testpassword123",
+            approval_status="approved"
         )
         db.session.add(user)
         db.session.commit()
@@ -250,7 +252,8 @@ class TestTypoCheckResultEndpoint:
         user = User(
             email="result_test@example.com",
             name="Result Test User",
-            password="testpassword123"
+            password="testpassword123",
+            approval_status="approved"
         )
         db.session.add(user)
         db.session.commit()
@@ -295,7 +298,8 @@ class TestTypoCheckResultEndpoint:
             user1 = User(
                 email="user1_access@example.com",
                 name="User 1",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user1)
             db.session.commit()
@@ -316,7 +320,8 @@ class TestTypoCheckResultEndpoint:
             user2 = User(
                 email="user2_access@example.com",
                 name="User 2",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user2)
             db.session.commit()

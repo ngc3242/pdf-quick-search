@@ -10,6 +10,7 @@ def admin_required(f):
     """Decorator to require admin role for endpoint.
 
     Must be used after @jwt_required to ensure user is authenticated.
+    Sets g.current_user to the authenticated admin user.
     """
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -25,6 +26,9 @@ def admin_required(f):
 
         if user.role != "admin":
             return jsonify({"error": "Admin access required"}), 403
+
+        # Store current user for use in route handlers
+        g.current_user = user
 
         return f(*args, **kwargs)
 

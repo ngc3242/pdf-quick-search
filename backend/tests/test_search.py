@@ -19,7 +19,8 @@ class TestSearchService:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -85,12 +86,14 @@ class TestSearchService:
             user1 = User(
                 email="user1@example.com",
                 name="User 1",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             user2 = User(
                 email="user2@example.com",
                 name="User 2",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add_all([user1, user2])
             db.session.commit()
@@ -145,7 +148,8 @@ class TestSearchService:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -189,7 +193,8 @@ class TestSearchService:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -237,7 +242,8 @@ class TestSearchService:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -308,7 +314,8 @@ class TestSearchAPI:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -361,7 +368,8 @@ class TestSearchAPI:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -390,7 +398,8 @@ class TestSearchAPI:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -427,7 +436,8 @@ class TestSearchAPI:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -482,12 +492,14 @@ class TestSearchAPI:
             user1 = User(
                 email="user1@example.com",
                 name="User 1",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             user2 = User(
                 email="user2@example.com",
                 name="User 2",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add_all([user1, user2])
             db.session.commit()

@@ -18,7 +18,8 @@ class TestDocumentUpload:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -131,7 +132,8 @@ class TestDocumentList:
             user = User(
                 email=email,
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -241,7 +243,8 @@ class TestDocumentDelete:
             user = User(
                 email=email,
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -333,7 +336,8 @@ class TestDocumentDownload:
             user = User(
                 email=email,
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()

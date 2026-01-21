@@ -72,6 +72,23 @@ export interface LoginResponse {
   user: User;
 }
 
+export interface SignupRequest {
+  email: string;
+  name: string;
+  phone: string;
+  password: string;
+}
+
+export interface SignupResponse {
+  message: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    approval_status: 'pending' | 'approved' | 'rejected';
+  };
+}
+
 // Admin types
 export interface UserWithDocuments extends User {
   document_count?: number;

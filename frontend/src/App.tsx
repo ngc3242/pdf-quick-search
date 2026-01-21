@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/auth';
-import { LoginPage, SearchPage, DocumentsPage, AdminPage, TypoCheckerPage } from '@/pages';
+import { LoginPage, SignupPage, SearchPage, DocumentsPage, AdminPage, TypoCheckerPage } from '@/pages';
 
 function App() {
   return (
@@ -8,6 +8,7 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
 
         {/* Protected routes */}
         <Route

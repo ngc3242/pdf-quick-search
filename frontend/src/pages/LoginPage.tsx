@@ -1,6 +1,18 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store';
+
+type ErrorType = 'default' | 'pending' | 'rejected';
+
+function getErrorType(error: string): ErrorType {
+  if (error.includes('승인 대기')) {
+    return 'pending';
+  }
+  if (error.includes('거부')) {
+    return 'rejected';
+  }
+  return 'default';
+}
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -26,8 +38,9 @@ export function LoginPage() {
     try {
       await login(email, password);
       navigate(from, { replace: true });
-    } catch {
-      setError('이메일 또는 비밀번호가 올바르지 않습니다');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '이메일 또는 비밀번호가 올바르지 않습니다';
+      setError(errorMessage);
     }
   };
 
@@ -128,11 +141,43 @@ export function LoginPage() {
             </div>
 
             {/* Error Message */}
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
+            {error && (() => {
+              const errorType = getErrorType(error);
+
+              if (errorType === 'pending') {
+                return (
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <span className="material-symbols-outlined text-amber-600 text-[20px] mt-0.5">hourglass_empty</span>
+                      <div>
+                        <p className="text-sm font-medium text-amber-800">{error}</p>
+                        <p className="text-sm text-amber-700 mt-1">관리자 승인 후 로그인이 가능합니다.</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (errorType === 'rejected') {
+                return (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <span className="material-symbols-outlined text-red-600 text-[20px] mt-0.5">cancel</span>
+                      <div>
+                        <p className="text-sm font-medium text-red-800">{error}</p>
+                        <p className="text-sm text-red-700 mt-1">관리자에게 문의하세요.</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              );
+            })()}
 
             {/* Submit Button */}
             <button
@@ -148,10 +193,16 @@ export function LoginPage() {
             </button>
           </form>
 
-          {/* Sign Up Link - Hidden since admin creates users */}
+          {/* Sign Up Link */}
           <div className="mt-8 text-center">
             <p className="text-text-secondary text-sm">
-              Contact your administrator if you need an account.
+              계정이 없으신가요?{' '}
+              <Link
+                to="/signup"
+                className="text-primary hover:text-blue-600 font-medium transition-colors"
+              >
+                회원가입
+              </Link>
             </p>
           </div>
         </div>

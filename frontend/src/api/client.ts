@@ -23,15 +23,29 @@ client.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle auth errors
+// Response interceptor - handle auth errors and extract error messages
 client.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  (error: AxiosError<{ error?: string; message?: string }>) => {
+    // Extract error message from response body
+    const errorMessage = error.response?.data?.error || error.response?.data?.message;
+
     if (error.response?.status === 401) {
-      // Clear token and redirect to login
-      localStorage.removeItem('access_token');
-      window.location.href = '/login';
+      // Only redirect for non-login requests (login 401 should show error message)
+      const isLoginRequest = error.config?.url?.includes('/auth/login');
+      if (!isLoginRequest) {
+        localStorage.removeItem('access_token');
+        window.location.href = '/login';
+      }
     }
+
+    // Create a new error with the server's message if available
+    if (errorMessage) {
+      const customError = new Error(errorMessage);
+      (customError as Error & { status?: number }).status = error.response?.status;
+      return Promise.reject(customError);
+    }
+
     return Promise.reject(error);
   }
 );

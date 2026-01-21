@@ -39,6 +39,93 @@ class AdminService:
         return result
 
     @staticmethod
+    def list_pending_users() -> Tuple[List[dict], int]:
+        """List users with pending approval status.
+
+        Returns:
+            Tuple of (list of user dictionaries, total count)
+        """
+        users = User.query.filter_by(approval_status="pending").all()
+        result = [
+            {
+                "id": user.id,
+                "email": user.email,
+                "name": user.name,
+                "phone": user.phone,
+                "approval_status": user.approval_status,
+                "created_at": user.created_at.isoformat() if user.created_at else None
+            }
+            for user in users
+        ]
+        return result, len(result)
+
+    @staticmethod
+    def approve_user(
+        user_id: str,
+        admin_user: User,
+        role: str = "user"
+    ) -> Tuple[Optional[User], Optional[str]]:
+        """Approve a pending user.
+
+        Args:
+            user_id: User ID to approve
+            admin_user: Admin user performing the approval
+            role: Role to assign to the user (default "user")
+
+        Returns:
+            Tuple of (User object, error message)
+        """
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            return None, "사용자를 찾을 수 없습니다."
+
+        if user.approval_status == "approved":
+            return None, "이미 승인된 사용자입니다."
+
+        if user.approval_status == "rejected":
+            return None, "이미 거부된 사용자입니다."
+
+        # Use the User model's approve method
+        user.approve(admin_user)
+        user.role = role
+        db.session.commit()
+
+        return user, None
+
+    @staticmethod
+    def reject_user(
+        user_id: str,
+        reason: str
+    ) -> Tuple[Optional[User], Optional[str]]:
+        """Reject a pending user.
+
+        Args:
+            user_id: User ID to reject
+            reason: Reason for rejection
+
+        Returns:
+            Tuple of (User object, error message)
+        """
+        if not reason or not reason.strip():
+            return None, "거부 사유를 입력해주세요."
+
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            return None, "사용자를 찾을 수 없습니다."
+
+        if user.approval_status == "approved":
+            return None, "이미 승인된 사용자입니다."
+
+        if user.approval_status == "rejected":
+            return None, "이미 거부된 사용자입니다."
+
+        # Use the User model's reject method
+        user.reject(reason)
+        db.session.commit()
+
+        return user, None
+
+    @staticmethod
     def create_user(
         email: str,
         name: str,

@@ -23,6 +23,7 @@ class TestSystemPromptsEndpointAuth:
                 name="Regular User",
                 password="password123",
                 role="user",
+                approval_status="approved",
             )
             db.session.add(user)
             db.session.commit()

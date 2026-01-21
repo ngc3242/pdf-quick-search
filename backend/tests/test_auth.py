@@ -17,7 +17,8 @@ class TestAuthLogin:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -55,7 +56,8 @@ class TestAuthLogin:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -79,7 +81,7 @@ class TestAuthLogin:
         assert response.status_code == 400
 
     def test_login_inactive_user(self, app, client):
-        """Test login with inactive user returns 401."""
+        """Test login with inactive user returns 403."""
         from app.models.user import User
         from app.models import db
 
@@ -88,7 +90,8 @@ class TestAuthLogin:
                 email="inactive@example.com",
                 name="Inactive User",
                 password="password123",
-                is_active=False
+                is_active=False,
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -99,7 +102,85 @@ class TestAuthLogin:
             content_type="application/json"
         )
 
-        assert response.status_code == 401
+        assert response.status_code == 403
+        data = response.get_json()
+        assert data["error"] == "Account is deactivated"
+
+    def test_login_pending_user(self, app, client):
+        """Test login with pending approval status returns 403."""
+        from app.models.user import User
+        from app.models import db
+
+        with app.app_context():
+            user = User(
+                email="pending@example.com",
+                name="Pending User",
+                password="password123",
+                approval_status="pending"
+            )
+            db.session.add(user)
+            db.session.commit()
+
+        response = client.post(
+            "/api/auth/login",
+            data=json.dumps({"email": "pending@example.com", "password": "password123"}),
+            content_type="application/json"
+        )
+
+        assert response.status_code == 403
+        data = response.get_json()
+        assert data["error"] == "계정이 관리자 승인 대기 중입니다."
+
+    def test_login_rejected_user(self, app, client):
+        """Test login with rejected approval status returns 403."""
+        from app.models.user import User
+        from app.models import db
+
+        with app.app_context():
+            user = User(
+                email="rejected@example.com",
+                name="Rejected User",
+                password="password123",
+                approval_status="rejected"
+            )
+            db.session.add(user)
+            db.session.commit()
+
+        response = client.post(
+            "/api/auth/login",
+            data=json.dumps({"email": "rejected@example.com", "password": "password123"}),
+            content_type="application/json"
+        )
+
+        assert response.status_code == 403
+        data = response.get_json()
+        assert data["error"] == "계정이 거부되었습니다. 관리자에게 문의하세요."
+
+    def test_login_admin_bypasses_approval_check(self, app, client):
+        """Test admin users can login regardless of approval status."""
+        from app.models.user import User
+        from app.models import db
+
+        with app.app_context():
+            user = User(
+                email="admin@example.com",
+                name="Admin User",
+                password="password123",
+                role="admin",
+                approval_status="pending"  # Even with pending status
+            )
+            db.session.add(user)
+            db.session.commit()
+
+        response = client.post(
+            "/api/auth/login",
+            data=json.dumps({"email": "admin@example.com", "password": "password123"}),
+            content_type="application/json"
+        )
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert "access_token" in data
 
 
 class TestAuthLogout:
@@ -116,7 +197,8 @@ class TestAuthLogout:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -152,7 +234,8 @@ class TestAuthLogout:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()
@@ -192,7 +275,8 @@ class TestAuthMe:
             user = User(
                 email="test@example.com",
                 name="Test User",
-                password="password123"
+                password="password123",
+                approval_status="approved"
             )
             db.session.add(user)
             db.session.commit()

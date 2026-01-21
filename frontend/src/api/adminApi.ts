@@ -1,10 +1,30 @@
 import client from './client';
 import type { User, UserWithDocuments, CreateUserRequest, UpdateUserRequest, Document } from '@/types';
 
+export interface PendingUsersResponse {
+  users: UserWithDocuments[];
+  total: number;
+}
+
 export const adminApi = {
   listUsers: async (): Promise<UserWithDocuments[]> => {
     const response = await client.get<{ users: UserWithDocuments[] }>('/admin/users');
     return response.data.users;
+  },
+
+  getPendingUsers: async (): Promise<PendingUsersResponse> => {
+    const response = await client.get<PendingUsersResponse>('/admin/users/pending');
+    return response.data;
+  },
+
+  approveUser: async (userId: string): Promise<{ message: string; user: User }> => {
+    const response = await client.post<{ message: string; user: User }>(`/admin/users/${userId}/approve`);
+    return response.data;
+  },
+
+  rejectUser: async (userId: string, reason: string): Promise<{ message: string; user: User }> => {
+    const response = await client.post<{ message: string; user: User }>(`/admin/users/${userId}/reject`, { reason });
+    return response.data;
   },
 
   createUser: async (data: CreateUserRequest): Promise<User> => {

@@ -1,6 +1,6 @@
 """Admin API routes."""
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 
 from app.services.admin_service import AdminService
 from app.utils.auth import jwt_required
@@ -20,6 +20,97 @@ def list_users():
     """
     users = AdminService.list_users()
     return jsonify({"users": users}), 200
+
+
+@admin_bp.route("/users/pending", methods=["GET"])
+@jwt_required
+@admin_required
+def list_pending_users():
+    """List all users pending approval.
+
+    Returns:
+        JSON with users array and total count
+    """
+    users, total = AdminService.list_pending_users()
+    return jsonify({"users": users, "total": total}), 200
+
+
+@admin_bp.route("/users/<user_id>/approve", methods=["POST"])
+@jwt_required
+@admin_required
+def approve_user(user_id: str):
+    """Approve a pending user.
+
+    Args:
+        user_id: User ID to approve
+
+    Request body (optional):
+        role: User role (default "user")
+
+    Returns:
+        200 OK with user info
+        400 Bad Request on validation error
+        404 Not Found if user doesn't exist
+    """
+    data = request.get_json() or {}
+    role = data.get("role", "user")
+    admin_user = g.current_user
+
+    user, error = AdminService.approve_user(user_id, admin_user, role)
+
+    if error:
+        status_code = 404 if error == "사용자를 찾을 수 없습니다." else 400
+        return jsonify({"error": error}), status_code
+
+    return jsonify({
+        "message": "사용자가 승인되었습니다.",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "approval_status": user.approval_status,
+            "approved_at": user.approved_at.isoformat() if user.approved_at else None
+        }
+    }), 200
+
+
+@admin_bp.route("/users/<user_id>/reject", methods=["POST"])
+@jwt_required
+@admin_required
+def reject_user(user_id: str):
+    """Reject a pending user.
+
+    Args:
+        user_id: User ID to reject
+
+    Request body:
+        reason: Rejection reason (required)
+
+    Returns:
+        200 OK with user info
+        400 Bad Request on validation error
+        404 Not Found if user doesn't exist
+    """
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "거부 사유를 입력해주세요."}), 400
+
+    reason = data.get("reason")
+
+    user, error = AdminService.reject_user(user_id, reason)
+
+    if error:
+        status_code = 404 if error == "사용자를 찾을 수 없습니다." else 400
+        return jsonify({"error": error}), status_code
+
+    return jsonify({
+        "message": "사용자가 거부되었습니다.",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "approval_status": user.approval_status
+        }
+    }), 200
 
 
 @admin_bp.route("/users", methods=["POST"])
