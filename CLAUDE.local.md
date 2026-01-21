@@ -127,6 +127,23 @@ CI/CD에 필요한 시크릿 (설정 완료):
 gh secret list
 ```
 
+
+---
+
+## MoAI-ADK Update Procedure
+
+moai-adk 업데이트 명령어:
+
+```bash
+uv tool install moai-adk==X.X.X --force --upgrade && moai --version
+```
+
+Claude Code 재시작 후 버전이 자동 반영됨 (hook이 `moai --version` CLI 사용)
+
+GitHub 릴리즈: https://github.com/modu-ai/moai-adk/releases
+
+
+
 ---
 
 ## 트러블슈팅

@@ -51,7 +51,7 @@ export function LoginPage() {
         <div className="flex gap-2">
           <a
             className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-[#f0f2f4] hover:bg-[#e4e7eb] text-text-primary text-sm font-bold leading-normal tracking-[0.015em] transition-colors"
-            href="mailto:support@example.com"
+            href="mailto:emong111@naver.com"
           >
             <span className="truncate">Contact Support</span>
           </a>

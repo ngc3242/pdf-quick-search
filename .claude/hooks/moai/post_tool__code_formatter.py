@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# /// script
+# dependencies = ["pyyaml"]
+# ///
 """PostToolUse Hook: Automatic Code Formatting
 
 Claude Code Event: PostToolUse
@@ -21,10 +24,12 @@ Output:
 - suppressOutput: true when nothing to report
 """
 
+from __future__ import annotations
+
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # Setup import path for shared modules
 HOOKS_DIR = Path(__file__).parent
@@ -123,7 +128,7 @@ def should_skip_file(file_path: str) -> tuple[bool, str]:
     return False, ""
 
 
-def format_file(file_path: str) -> Dict[str, Any]:
+def format_file(file_path: str) -> dict[str, Any]:
     """Format a single file using the appropriate formatter.
 
     Args:
@@ -132,7 +137,7 @@ def format_file(file_path: str) -> Dict[str, Any]:
     Returns:
         Dictionary with formatting results
     """
-    results: Dict[str, Any] = {
+    results: dict[str, Any] = {
         "file": file_path,
         "formatted": False,
         "tools_run": [],
@@ -217,7 +222,7 @@ def main() -> None:
     result = format_file(file_path)
 
     # Build output
-    output: Dict[str, Any] = {}
+    output: dict[str, Any] = {}
 
     if result.get("formatted"):
         # File was formatted - provide context to Claude

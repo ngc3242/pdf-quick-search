@@ -226,3 +226,19 @@ coverage.json
 .gitlab-ci.yml.bak
 private-key*
 .env/
+# Claude Code Configuration
+# Python Cache & Bytecode
+# Skill-specific credentials
+# Private keys (specific patterns to avoid false positives)
+# Secrets and Credentials (CRITICAL)
+# ===========================================
+.turbo/
+# Build Tools & Frameworks
+# Updated: 2026-01-10
+.nuxt/
+dist-ssr/
+# Credential patterns in environment files
+# Environment files
+# Build Artifacts & Distribution
+# Version: 0.33.0
+# Deployment & CI/CD
