@@ -1,4 +1,6 @@
 // User types
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+
 export interface User {
   id: string;
   email: string;
@@ -7,6 +9,10 @@ export interface User {
   role: 'admin' | 'user';
   is_active: boolean;
   created_at: string;
+  approval_status: ApprovalStatus;
+  approved_at: string | null;
+  approved_by_id: string | null;
+  approval_reason: string | null;
 }
 
 // Document types

@@ -89,6 +89,7 @@ export function AdminPage() {
     try {
       await adminApi.rejectUser(selectedUser.id, rejectReason.trim());
       await fetchPendingUsers();
+      await fetchUsers();
       setRejectDialogOpen(false);
       setSelectedUser(null);
       setRejectReason('');
@@ -150,10 +151,46 @@ export function AdminPage() {
     const matchesRole = !roleFilter || u.role === roleFilter;
     const matchesStatus =
       !statusFilter ||
-      (statusFilter === 'active' && u.is_active) ||
-      (statusFilter === 'inactive' && !u.is_active);
+      (statusFilter === 'pending' && u.approval_status === 'pending') ||
+      (statusFilter === 'approved' && u.approval_status === 'approved' && u.is_active) ||
+      (statusFilter === 'rejected' && u.approval_status === 'rejected') ||
+      (statusFilter === 'inactive' && u.approval_status === 'approved' && !u.is_active);
     return matchesSearch && matchesRole && matchesStatus;
   });
+
+  const getStatusBadge = (user: UserWithDocuments) => {
+    if (user.approval_status === 'pending') {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+          <span className="text-sm text-orange-600 font-medium">승인 대기</span>
+        </div>
+      );
+    }
+    if (user.approval_status === 'rejected') {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+          <span className="text-sm text-red-600 font-medium">거부됨</span>
+        </div>
+      );
+    }
+    // approved
+    if (user.is_active) {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+          <span className="text-sm text-text-primary">활성</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+        <span className="text-sm text-text-secondary">비활성</span>
+      </div>
+    );
+  };
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -373,8 +410,10 @@ export function AdminPage() {
                     className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg border border-[#e5e7eb] bg-white px-4 hover:bg-[#f9fafb] transition-colors text-text-primary text-sm font-medium cursor-pointer appearance-none pr-8"
                   >
                     <option value="">상태: 전체</option>
-                    <option value="active">활성</option>
+                    <option value="pending">승인 대기</option>
+                    <option value="approved">활성</option>
                     <option value="inactive">비활성</option>
+                    <option value="rejected">거부됨</option>
                   </select>
                 </div>
                 <button
@@ -450,12 +489,7 @@ export function AdminPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">{getRoleBadge(u.role)}</td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`w-2 h-2 rounded-full ${u.is_active ? 'bg-green-500' : 'bg-red-500'}`}
-                              ></div>
-                              <span className="text-sm text-text-primary">{u.is_active ? '활성' : '비활성'}</span>
-                            </div>
+                            {getStatusBadge(u)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
                             <span className="text-sm font-medium text-text-primary">{u.document_count}</span>
@@ -465,6 +499,30 @@ export function AdminPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             <div className="flex items-center justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                              {u.approval_status === 'pending' && (
+                                <>
+                                  <button
+                                    onClick={() => handleApproveUser(u.id)}
+                                    disabled={isApproving === u.id}
+                                    className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors disabled:opacity-50"
+                                    title="승인"
+                                  >
+                                    {isApproving === u.id ? (
+                                      <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+                                    ) : (
+                                      <span className="material-symbols-outlined text-[20px]">check_circle</span>
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={() => openRejectDialog(u)}
+                                    disabled={isApproving === u.id}
+                                    className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                                    title="거부"
+                                  >
+                                    <span className="material-symbols-outlined text-[20px]">cancel</span>
+                                  </button>
+                                </>
+                              )}
                               <button
                                 onClick={() => setEditUser(u)}
                                 className="p-1.5 text-text-secondary hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
