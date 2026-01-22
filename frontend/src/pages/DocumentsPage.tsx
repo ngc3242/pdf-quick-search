@@ -3,16 +3,14 @@
  * Upload, view, and delete PDF documents
  */
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Modal } from '@/components/common';
 import { PDFViewer } from '@/components/viewer';
 import { AuthorDisplay, DOILink } from '@/components/documents';
-import { useAuthStore, useDocumentStore } from '@/store';
+import { MainLayout } from '@/components/layout';
+import { useDocumentStore } from '@/store';
 import type { Document, ExtractionStatus, MetadataStatus } from '@/types';
 
 export function DocumentsPage() {
-  const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
   const {
     documents,
     isLoading,
@@ -23,8 +21,6 @@ export function DocumentsPage() {
     pages,
     total,
   } = useDocumentStore();
-
-  const isAdmin = user?.role === 'admin';
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Document | null>(null);
@@ -44,11 +40,6 @@ export function DocumentsPage() {
   useEffect(() => {
     fetchDocuments();
   }, [fetchDocuments]);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
 
   // Check for duplicate filenames against existing documents
   const checkDuplicates = (files: File[]): { duplicates: File[]; nonDuplicates: File[] } => {
@@ -258,56 +249,9 @@ export function DocumentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background-light flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[#e5e7eb] shadow-sm">
-        <div className="flex items-center justify-between h-16 px-4 lg:px-10 max-w-[1400px] mx-auto w-full">
-          {/* Logo - clickable to home */}
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-          >
-            <div className="size-10 rounded-lg bg-primary flex items-center justify-center text-white shadow-sm">
-              <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
-            </div>
-            <h2 className="text-text-primary text-lg font-bold leading-tight tracking-[-0.015em] hidden sm:block">
-              PDF Quick Search
-            </h2>
-          </button>
-
-          <div className="flex items-center justify-end gap-4 lg:gap-8">
-            <nav className="hidden lg:flex items-center gap-6">
-              <button
-                onClick={() => navigate('/documents')}
-                className="text-primary text-sm font-medium"
-              >
-                Documents
-              </button>
-              {isAdmin && (
-                <button
-                  onClick={() => navigate('/admin')}
-                  className="text-text-primary text-sm font-medium hover:text-primary transition-colors"
-                >
-                  Users
-                </button>
-              )}
-            </nav>
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center rounded-full size-10 hover:bg-[#f0f2f4] transition-colors text-text-primary"
-              title="로그아웃"
-            >
-              <span className="material-symbols-outlined">logout</span>
-            </button>
-            <div className="bg-primary text-white rounded-full size-10 flex items-center justify-center text-sm font-bold cursor-pointer">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <MainLayout>
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 lg:px-10 py-8">
+      <div className="w-full max-w-[1200px] mx-auto px-4 lg:px-10 py-8">
         {/* Page Heading */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="flex flex-col gap-1">
@@ -561,7 +505,7 @@ export function DocumentsPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       {/* Upload Dialog */}
       <Modal isOpen={isUploadOpen} onClose={() => !isUploading && setIsUploadOpen(false)} title="파일 업로드" size="md">
@@ -763,6 +707,6 @@ export function DocumentsPage() {
           onClose={() => setViewerDoc(null)}
         />
       )}
-    </div>
+    </MainLayout>
   );
 }

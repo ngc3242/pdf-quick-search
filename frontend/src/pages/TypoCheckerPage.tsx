@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { XMarkIcon, DocumentMagnifyingGlassIcon, ArrowPathIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { MainLayout } from '@/components/layout';
 import { useTypoCheckerStore } from '@/store';
 import {
   TextInput,
@@ -14,7 +14,6 @@ import { typoApi } from '@/api';
 import type { ProviderAvailability } from '@/types';
 
 export const TypoCheckerPage = () => {
-  const navigate = useNavigate();
   const {
     text,
     result,
@@ -88,35 +87,14 @@ export const TypoCheckerPage = () => {
   const canCheck = text.trim().length > 0 && !isLoading;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <DocumentMagnifyingGlassIcon className="w-8 h-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">맞춤법 검사</h1>
-            </div>
-            <nav className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/')}
-                className="text-gray-600 text-sm font-medium hover:text-blue-600 transition-colors"
-              >
-                PDF Quick Search
-              </button>
-              <button
-                onClick={() => navigate('/documents')}
-                className="text-gray-600 text-sm font-medium hover:text-blue-600 transition-colors"
-              >
-                Documents
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header>
-
+    <MainLayout>
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 bg-gray-50 min-h-[calc(100vh-120px)]">
+        {/* Page Title */}
+        <div className="flex items-center gap-3 mb-6">
+          <DocumentMagnifyingGlassIcon className="w-8 h-8 text-primary" />
+          <h1 className="text-2xl font-bold text-text-primary">맞춤법 검사</h1>
+        </div>
         <div className="flex gap-6">
           {/* History Panel - Left Sidebar */}
           <aside className="w-80 flex-shrink-0">
@@ -253,7 +231,7 @@ export const TypoCheckerPage = () => {
             )}
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </MainLayout>
   );
 };
