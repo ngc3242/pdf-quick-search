@@ -8,6 +8,7 @@ provider selection, result aggregation, and caching.
 import hashlib
 import json
 import logging
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from app import db
@@ -372,6 +373,140 @@ class TypoCheckerService:
                 return provider
 
         return None
+
+    @staticmethod
+    def process_job(job_id: int) -> None:
+        """Process a typo check job from the queue.
+
+        Updates job status and progress as it processes each chunk.
+        On completion, creates a TypoCheckResult and links it to the job.
+        """
+        from app.models.typo_check_job import TypoCheckJob
+
+        MAX_RETRIES = 3
+
+        job = db.session.get(TypoCheckJob, job_id)
+        if not job or job.status == "cancelled":
+            return
+
+        job.status = "processing"
+        job.started_at = datetime.now(timezone.utc)
+        db.session.commit()
+
+        try:
+            text = job.original_text
+
+            # Check cache first
+            cached_result = None
+            try:
+                cached_result = TypoCheckResult.query.filter_by(
+                    user_id=job.user_id,
+                    original_text_hash=job.original_text_hash,
+                    provider_used=job.provider,
+                ).first()
+            except Exception as e:
+                logger.warning(f"Cache lookup failed: {e}")
+                db.session.rollback()
+
+            if cached_result:
+                job.status = "completed"
+                job.result_id = cached_result.id
+                job.progress_current = 1
+                job.progress_total = 1
+                job.completed_at = datetime.now(timezone.utc)
+                db.session.commit()
+                return
+
+            # Get provider
+            TypoCheckerService._init_providers()
+            ai_provider = TypoCheckerService._get_provider(job.provider)
+            if not ai_provider or not ai_provider.is_available():
+                ai_provider = TypoCheckerService._get_default_provider()
+            if not ai_provider or not ai_provider.is_available():
+                raise ValueError(f"Provider '{job.provider}' is not available")
+
+            # Chunk text
+            chunks = TypoCheckerService._chunk_text(text)
+            job.progress_total = len(chunks)
+            job.progress_current = 0
+            db.session.commit()
+
+            all_issues: List[Dict] = []
+            corrected_chunks: List[str] = []
+            current_position = 0
+
+            for i, chunk in enumerate(chunks):
+                # Check for cancellation between chunks
+                db.session.refresh(job)
+                if job.status == "cancelled":
+                    logger.info(f"Typo check job {job_id} cancelled by user")
+                    return
+
+                result = ai_provider.check_typo(chunk)
+                if not result.success:
+                    raise ValueError(
+                        result.error_message or "Failed to check typos"
+                    )
+
+                corrected_chunks.append(result.corrected_text)
+                for issue in result.issues:
+                    issue_dict = issue.to_dict()
+                    issue_dict["position"] += current_position
+                    all_issues.append(issue_dict)
+
+                current_position += len(chunk)
+
+                # Update progress after each chunk
+                job.progress_current = i + 1
+                db.session.commit()
+
+            # Combine results
+            final_corrected = "".join(corrected_chunks)
+            provider_name = ai_provider.provider_name
+
+            if len(final_corrected) < len(text) * 0.5:
+                final_corrected = TypoCheckerService._reconstruct_corrected_text(
+                    text, all_issues
+                )
+
+            # Store result
+            db_result = TypoCheckResult(
+                user_id=job.user_id,
+                original_text_hash=job.original_text_hash,
+                original_text=text,
+                corrected_text=final_corrected,
+                issues=json.dumps(all_issues),
+                provider_used=provider_name,
+            )
+            db.session.add(db_result)
+            db.session.flush()
+
+            # Mark job complete
+            job.status = "completed"
+            job.result_id = db_result.id
+            job.completed_at = datetime.now(timezone.utc)
+            db.session.commit()
+
+            logger.info(
+                f"Typo check job {job_id} completed: "
+                f"{len(all_issues)} issues found"
+            )
+
+        except Exception as e:
+            logger.error(f"Typo check job {job_id} failed: {e}")
+            db.session.rollback()
+
+            job = db.session.get(TypoCheckJob, job_id)
+            if job and job.status != "cancelled":
+                job.retry_count += 1
+                job.error_message = str(e)
+                if job.retry_count >= MAX_RETRIES:
+                    job.status = "failed"
+                    job.completed_at = datetime.now(timezone.utc)
+                else:
+                    job.status = "pending"
+                    job.started_at = None
+                db.session.commit()
 
     @staticmethod
     def _reconstruct_corrected_text(original_text: str, issues: List[Dict]) -> str:

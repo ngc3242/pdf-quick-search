@@ -160,6 +160,30 @@ export interface ProviderAvailability {
   gemini: boolean;
 }
 
+// Typo Check Job types (async processing)
+export type TypoCheckJobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+
+export interface TypoCheckJobResponse {
+  job_id: number;
+  status: TypoCheckJobStatus;
+}
+
+export interface TypoCheckJobPollResult {
+  id: number;
+  status: TypoCheckJobStatus;
+  progress: TypoCheckProgress;
+  error_message: string | null;
+  result_id: number | null;
+  result?: {
+    corrected_text: string;
+    issues: TypoIssue[];
+    provider: TypoProvider;
+    original_text: string;
+  };
+  created_at: string | null;
+  completed_at: string | null;
+}
+
 // Typo History types (SPEC-HISTORY-001)
 export interface TypoHistoryItem {
   id: number;

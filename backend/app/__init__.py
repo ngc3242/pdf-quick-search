@@ -58,4 +58,10 @@ def create_app(config_name: str = "default") -> Flask:
 
         init_worker(app)
 
+    # Initialize typo check worker (adaptive polling)
+    if app.config.get("ENABLE_TYPO_CHECK_WORKER", True):
+        from app.typo_worker import init_typo_worker
+
+        init_typo_worker(app)
+
     return app

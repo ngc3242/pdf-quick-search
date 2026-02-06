@@ -122,8 +122,11 @@ describe('useTypoCheckerStore', () => {
       expect(useTypoCheckerStore.getState().isLoading).toBe(true);
     });
 
-    it('should update result on successful check', async () => {
-      vi.mocked(typoApi.checkTypo).mockResolvedValue(mockTypoResult);
+    it('should update result on successful cached check', async () => {
+      vi.mocked(typoApi.checkTypo).mockResolvedValue({
+        cached: true,
+        result: mockTypoResult,
+      });
 
       const { checkTypo, setText } = useTypoCheckerStore.getState();
 
@@ -162,7 +165,10 @@ describe('useTypoCheckerStore', () => {
     });
 
     it('should call API with correct parameters', async () => {
-      vi.mocked(typoApi.checkTypo).mockResolvedValue(mockTypoResult);
+      vi.mocked(typoApi.checkTypo).mockResolvedValue({
+        cached: true,
+        result: mockTypoResult,
+      });
 
       const { checkTypo, setText, setProvider } = useTypoCheckerStore.getState();
 

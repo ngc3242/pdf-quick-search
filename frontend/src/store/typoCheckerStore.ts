@@ -4,8 +4,46 @@ import type {
   TypoProvider,
   TypoCheckProgress,
   TypoHistoryItem,
+  TypoCheckJobPollResult,
 } from '@/types';
 import { typoApi } from '@/api';
+
+const POLL_INTERVAL = 1500; // 1.5 seconds
+const MAX_POLL_TIME = 10 * 60 * 1000; // 10 minutes
+
+async function pollForCompletion(
+  jobId: number,
+  onProgress: (progress: TypoCheckProgress) => void
+): Promise<TypoCheckJobPollResult> {
+  const startTime = Date.now();
+  let consecutiveErrors = 0;
+
+  while (true) {
+    try {
+      const status = await typoApi.getJobStatus(jobId);
+      consecutiveErrors = 0;
+
+      if (status.progress) {
+        onProgress(status.progress);
+      }
+
+      if (['completed', 'failed', 'cancelled'].includes(status.status)) {
+        return status;
+      }
+    } catch {
+      consecutiveErrors++;
+      if (consecutiveErrors >= 5) {
+        throw new Error('서버 연결에 실패했습니다');
+      }
+    }
+
+    if (Date.now() - startTime > MAX_POLL_TIME) {
+      throw new Error('맞춤법 검사 시간이 초과되었습니다');
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+  }
+}
 
 interface TypoCheckerState {
   text: string;
@@ -14,6 +52,7 @@ interface TypoCheckerState {
   error: string | null;
   selectedProvider: TypoProvider;
   progress: TypoCheckProgress | null;
+  currentJobId: number | null;
 
   // History state (SPEC-HISTORY-001)
   history: TypoHistoryItem[];
@@ -49,6 +88,7 @@ const initialState = {
   error: null,
   selectedProvider: 'gemini' as TypoProvider,
   progress: null,
+  currentJobId: null as number | null,
   // History initial state (SPEC-HISTORY-001)
   history: [] as TypoHistoryItem[],
   historyPage: 1,
@@ -79,20 +119,66 @@ export const useTypoCheckerStore = create<TypoCheckerState>((set, get) => ({
       return;
     }
 
-    set({ isLoading: true, error: null, result: null });
+    set({
+      isLoading: true,
+      error: null,
+      result: null,
+      progress: null,
+      currentJobId: null,
+    });
 
     try {
-      const result = await typoApi.checkTypo({
+      const response = await typoApi.checkTypo({
         text,
         provider: selectedProvider,
       });
-      set({ result, isLoading: false });
+
+      if (response.cached) {
+        // Cache hit - done immediately
+        set({ result: response.result, isLoading: false });
+        return;
+      }
+
+      // Job created - start polling
+      const jobId = response.job_id;
+      set({ currentJobId: jobId });
+
+      const pollResult = await pollForCompletion(jobId, (progress) => {
+        set({ progress });
+      });
+
+      if (pollResult.status === 'completed' && pollResult.result) {
+        const result: TypoCheckResult = {
+          original_text: pollResult.result.original_text,
+          corrected_text: pollResult.result.corrected_text,
+          issues: pollResult.result.issues,
+          provider: pollResult.result.provider,
+          processing_time_ms: 0,
+          chunk_count: pollResult.progress.total_chunks,
+        };
+        set({ result, isLoading: false, progress: null, currentJobId: null });
+      } else if (pollResult.status === 'failed') {
+        set({
+          error: pollResult.error_message || '맞춤법 검사에 실패했습니다',
+          isLoading: false,
+          progress: null,
+          currentJobId: null,
+        });
+      } else if (pollResult.status === 'cancelled') {
+        set({ isLoading: false, progress: null, currentJobId: null });
+      }
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
           ? error.message
           : '맞춤법 검사 중 오류가 발생했습니다';
-      set({ error: errorMessage, isLoading: false, result: null });
+      set({
+        error: errorMessage,
+        isLoading: false,
+        result: null,
+        progress: null,
+        currentJobId: null,
+      });
     }
   },
 
@@ -101,7 +187,11 @@ export const useTypoCheckerStore = create<TypoCheckerState>((set, get) => ({
   },
 
   cancelCheck: () => {
-    set({ isLoading: false, progress: null });
+    const { currentJobId } = get();
+    if (currentJobId) {
+      typoApi.cancelJob(currentJobId).catch(() => {});
+    }
+    set({ isLoading: false, progress: null, currentJobId: null });
   },
 
   reset: () => {
